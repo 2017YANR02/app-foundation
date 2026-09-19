@@ -74,3 +74,7 @@ Media Range/container parsing is the next candidate to validate. SMS, password c
 - CI configuration now covers all packages, but the changed workflow has not run on GitHub. No push, tag, release, actual email, database migration or application deployment occurred. Candidate 0.1.0 versions are package-specific and are not assets of the existing payments v0.1.0 release.
 
 Next local work: validate the single-range media contract before deciding on a package. Future consumer adoption must use a newly published immutable artifact, preserve templates/configuration, and stage legacy OTP compatibility and application transactions separately. Do not overwrite the existing payment release.
+
+## v0.2.0 publication preparation — 2026-09-19
+
+The owner subsequently authorized necessary pushes. Prepare an immutable v0.2.0 repository release carrying messaging 0.1.0 and verification 0.1.0. Payments remains at its original v0.1.0 artifact URL and checksum. Run the reviewed test/pack/consumer checks, then Node 22/24 CI on the exact pushed source before publishing assets. Consumer adoption and production deployments remain separate. The previous no-push preparation record is historical, not the current push authorization.

@@ -7,8 +7,8 @@ Small, independently versioned building blocks for server applications. The firs
 | Package | Scope | Status |
 | --- | --- | --- |
 | `@app-foundation/payments` | Explicit-configuration WeChat Pay API v3 and Alipay clients, signature verification, integer CNY amounts and expected-order matching | Published 0.1.0 |
-| `@app-foundation/messaging` | Resend transport, sanitized errors, bounded requests and caller-owned idempotency | Local 0.1.0 candidate, unpublished |
-| `@app-foundation/verification` | Scoped code digests, numeric generation, verification and cooldown rules | Local 0.1.0 candidate, unpublished |
+| `@app-foundation/messaging` | Resend transport, sanitized errors, bounded requests and caller-owned idempotency | 0.1.0 prepared for release v0.2.0 |
+| `@app-foundation/verification` | Scoped code digests, numeric generation, verification and cooldown rules | 0.1.0 prepared for release v0.2.0 |
 
 Mail templates, code storage and account transactions remain consumer-owned. Media and other candidates are tracked without placeholder packages. There is no shared online payment or identity server.
 

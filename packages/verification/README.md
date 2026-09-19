@@ -1,7 +1,7 @@
 # @app-foundation/verification
 
-Local 0.1.0 candidate for Node >=22. Pure server-side verification-code cryptography
-and lifecycle rules, compiled as CommonJS with TypeScript declarations. Not published.
+Version 0.1.0 for Node >=22. Pure server-side verification-code cryptography
+and lifecycle rules, compiled as CommonJS with TypeScript declarations.
 No database, environment reads, network, messages, account types or application templates.
 
 ```ts
@@ -74,7 +74,7 @@ same stale state can otherwise both report success.
 
 ## Consumer migration contract
 
-This candidate does not replace any application's existing hashes or active codes.
+This package does not replace any application's existing hashes or active codes.
 Legacy peppered hashes and previous HMAC serialization remain application-owned.
 Do not send an old digest to `matchesCodeDigest` and silently retry another algorithm.
 A future migration must explicitly persist/select the algorithm version on each
@@ -86,8 +86,8 @@ version alongside the immutable target/purpose/channel; do not regenerate a chal
 ID while verifying. Review the old-code expiry window before removing its verifier.
 These pure rules do not repair an existing consumer that inserts before send without
 a delivery-state guard, or consumes a code outside the protected business transaction.
-No data migration, production dependency change or release is included here. Consumers
-must eventually pin a reviewed immutable release; source-path imports and local-file
+No data migration or production dependency change is performed by this package. Consumers
+must pin a reviewed immutable release; source-path imports and local-file
 production dependencies are not supported.
 
 Local validation: `pnpm --filter @app-foundation/verification check`. Tests use only

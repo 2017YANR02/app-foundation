@@ -1,6 +1,6 @@
 # @app-foundation/messaging
 
-Local 0.1.0 candidate, not published. Node >=22, no runtime dependencies. Resend email transport with explicit configuration; no environment reads, templates, persistence or automatic retries.
+Version 0.1.0. Node >=22, no runtime dependencies. Resend email transport with explicit configuration; no environment reads, templates, persistence or automatic retries.
 
 ```ts
 import { createResendClient, MailError } from "@app-foundation/messaging";
