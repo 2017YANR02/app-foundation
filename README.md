@@ -7,8 +7,8 @@ Small, independently versioned building blocks for server applications. The firs
 | Package | Scope | Status |
 | --- | --- | --- |
 | `@app-foundation/payments` | Explicit-configuration WeChat Pay API v3 and Alipay clients, signature verification, integer CNY amounts and expected-order matching | Published 0.1.0 |
-| `@app-foundation/messaging` | Resend transport, sanitized errors, bounded requests and caller-owned idempotency | 0.1.0 prepared for release v0.2.0 |
-| `@app-foundation/verification` | Scoped code digests, numeric generation, verification and cooldown rules | 0.1.0 prepared for release v0.2.0 |
+| `@app-foundation/messaging` | Resend transport, sanitized errors, bounded requests and caller-owned idempotency | Published 0.1.0 in release v0.2.0 |
+| `@app-foundation/verification` | Scoped code digests, numeric generation, verification and cooldown rules | Published 0.1.0 in release v0.2.0 |
 
 Mail templates, code storage and account transactions remain consumer-owned. Media and other candidates are tracked without placeholder packages. There is no shared online payment or identity server.
 
@@ -27,12 +27,14 @@ Tests generate ephemeral keys and inject HTTP responses. They never use merchant
 
 ## Distribution
 
-Only payments is published. Messaging and verification remain local candidates; do not add them to application runtime dependencies until an immutable release is available.
+Payments 0.1.0 is published in repository release v0.1.0. Messaging 0.1.0 and verification 0.1.0 are published in v0.2.0, with SHA-256 checksums. Use each immutable asset URL and its lockfile integrity; the payment artifact has not changed.
 
 The GitHub release `v0.1.0` supplies the npm-format package artifact and SHA-256 checksum. Install the exact release URL and commit the resulting dependency lockfile. Nothing is published to the npm registry in this release.
 
 ```sh
 pnpm add 'https://github.com/2017YANR02/app-foundation/releases/download/v0.1.0/app-foundation-payments-0.1.0.tgz'
+pnpm add 'https://github.com/2017YANR02/app-foundation/releases/download/v0.2.0/app-foundation-messaging-0.1.0.tgz'
+pnpm add 'https://github.com/2017YANR02/app-foundation/releases/download/v0.2.0/app-foundation-verification-0.1.0.tgz'
 ```
 
 Consumers can adopt a release independently. Do not use a relative source path, symlink, moving branch or unversioned workspace dependency across repositories. Publishing this library does not deploy any consumer application or enable a payment product.

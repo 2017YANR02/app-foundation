@@ -78,3 +78,14 @@ Next local work: validate the single-range media contract before deciding on a p
 ## v0.2.0 publication preparation — 2026-09-19
 
 The owner subsequently authorized necessary pushes. Prepare an immutable v0.2.0 repository release carrying messaging 0.1.0 and verification 0.1.0. Payments remains at its original v0.1.0 artifact URL and checksum. Run the reviewed test/pack/consumer checks, then Node 22/24 CI on the exact pushed source before publishing assets. Consumer adoption and production deployments remain separate. The previous no-push preparation record is historical, not the current push authorization.
+
+## v0.2.0 published evidence — 2026-09-19
+
+- Immutable tag and release v0.2.0 target `9b989fcfde0c94b6012e7f46471aa549a17ce1db`. Source pushed under the owner's subsequent authorization.
+- [Exact-source CI](https://github.com/2017YANR02/app-foundation/actions/runs/35451483436): Node 22 and 24 both passed build, all 60 tests, packing and isolated consumption.
+- [Release](https://github.com/2017YANR02/app-foundation/releases/tag/v0.2.0) contains messaging 0.1.0, verification 0.1.0 and SHA256SUMS. The README preparation changes are included in these final bytes, so historical candidate hashes above are not release hashes.
+- messaging SHA-256: `412b677472d09cf2877fc9fe105f8da49eba1ad2ebe3d927ca5bc06c7e8f8272`.
+- verification SHA-256: `cf30fe212c946026ee33e7873959de5d1c54bc1f8b0f072a977db71eba4f21c5`.
+- Anonymous downloads matched the reviewed local tarballs byte-for-byte. Existing payments remains at its original URL and checksum. No assets or tags were overwritten.
+- Both consumers now have local adapters pinned to the published artifacts with integrity checks. Application verification, commits and deployment evidence remain in their own repositories; this public record includes no private application logic. No consumer deployment or live email/payment is implied.
+- Media single-range parsing remains application-local: the present small parser overlap does not justify another distribution unit. Multipart/status/stream authorization differ; MP4 rules differ materially. Revisit after a shared contract change creates a real maintenance need.
