@@ -1,0 +1,21 @@
+{
+  "name": "@app-foundation/verification",
+  "version": "0.1.0",
+  "description": "Pure server-side verification code cryptography and lifecycle rules",
+  "license": "GPL-3.0-only",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }
+  },
+  "files": ["dist", "src", "LICENSE", "NOTICE.md", "README.md", "tsconfig.json"],
+  "engines": { "node": ">=22" },
+  "repository": { "type": "git", "url": "https://github.com/2017YANR02/app-foundation.git", "directory": "packages/verification" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "pnpm build && node --test test/*.test.mjs",
+    "prepack": "pnpm build"
+  },
+  "devDependencies": { "@types/node": "22.15.30", "typescript": "5.7.3" }
+}

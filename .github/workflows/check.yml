@@ -19,5 +19,5 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
-      - run: pnpm pack:payments
+      - run: pnpm pack:all
       - run: node scripts/verify-package.mjs

@@ -1,27 +1,49 @@
-import { mkdtemp, writeFile, rm, readdir } from "node:fs/promises";
+import { mkdtemp, writeFile, rm, readdir, readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const artifacts = (await readdir(path.join(root, "artifacts"))).filter((file) => file.endsWith(".tgz"));
-if (artifacts.length !== 1) throw new Error("Expected exactly one package artifact");
+const packages = ["payments", "messaging", "verification"];
+const expected = await Promise.all(packages.map(async (name) => {
+  const manifest = JSON.parse(await readFile(path.join(root, "packages", name, "package.json"), "utf8"));
+  return `app-foundation-${name}-${manifest.version}.tgz`;
+}));
+const artifacts = (await readdir(path.join(root, "artifacts"))).filter((file) => file.endsWith(".tgz")).sort();
+if (JSON.stringify(artifacts) !== JSON.stringify(expected.sort())) throw new Error("Expected exactly the current three package artifacts");
+for (const artifact of artifacts) {
+  const filename = path.join(root, "artifacts", artifact);
+  const files = execFileSync("tar", ["-tzf", filename], { encoding: "utf8" }).trim().split("\n");
+  if (files.some(file => !/^package\/(?:dist\/|src\/|package\.json$|tsconfig\.json$|README\.md$|NOTICE\.md$|LICENSE$)/u.test(file)
+    || file.split("/").some(part => part === ".." || part.startsWith(".")))) throw new Error(`Unexpected tarball contents: ${artifact}`);
+  console.log(`${createHash("sha256").update(await readFile(filename)).digest("hex")}  ${artifact}`);
+}
 const directory = await mkdtemp(path.join(tmpdir(), "foundation-consumer-"));
 try {
   await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "isolated-consumer", private: true, type: "module" }));
-  execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--offline", path.join(root, "artifacts", artifacts[0])], { cwd: directory, stdio: "pipe" });
+  execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--offline", ...artifacts.map(file => path.join(root, "artifacts", file))], { cwd: directory, stdio: "pipe" });
   await writeFile(path.join(directory, "consumer.cjs"), `const assert = require("node:assert/strict");
 const core = require("@app-foundation/payments/core");
 assert.equal(core.decimalToMinor("10.01"), 1001);
 assert.equal(typeof require("@app-foundation/payments/wechat").createWechatPayClient, "function");
 assert.equal(typeof require("@app-foundation/payments/alipay").createAlipayClient, "function");
+assert.equal(typeof require("@app-foundation/messaging").createResendClient, "function");
+assert.equal(require("@app-foundation/verification").generateNumericCode().length, 6);
 `);
   await writeFile(path.join(directory, "consumer.mjs"), `import assert from "node:assert/strict";
 import { createWechatPayClient, createAlipayClient, decimalToMinor } from "@app-foundation/payments";
 assert.equal(typeof createWechatPayClient, "function");
 assert.equal(typeof createAlipayClient, "function");
 assert.equal(decimalToMinor("0.01"), 1);
+import { createResendClient } from "@app-foundation/messaging";
+import { createCodeDigest, matchesCodeDigest, evaluateVerification } from "@app-foundation/verification";
+const binding = { secret: "0".repeat(32), purpose: "register", channel: "email", target: "user@example.test", challengeId: "example", code: "123456" };
+assert.ok(matchesCodeDigest(binding, createCodeDigest(binding)));
+assert.equal(evaluateVerification({ status: "sent", expiresAtMs: 2000, attempts: 0, consumedAtMs: null }, { nowMs: 1000, maxAttempts: 5, matches: true }).reason, "verified");
+const client = createResendClient({ apiKey: "test-key", from: "sender@example.test" }, { fetch: async () => new Response(JSON.stringify({ id: "test-message" }), { status: 200 }) });
+assert.deepEqual(await client.send({ to: "user@example.test", subject: "Test", text: "Synthetic only" }), { accepted: true, messageId: "test-message" });
 `);
   await writeFile(path.join(directory, "consumer.ts"), `import { createWechatPayClient } from "@app-foundation/payments/wechat";
 import { createAlipayClient } from "@app-foundation/payments/alipay";
@@ -32,10 +54,17 @@ declare const payment: ExpectedPayment;
 assertPaymentMatches(payment, payment);
 createWechatPayClient(wechatConfig).queryOrder("order-123");
 createAlipayClient(alipayConfig).queryTrade("order-123");
+import { createResendClient, type EmailAccepted } from "@app-foundation/messaging";
+import { createCodeDigest, matchesCodeDigest, evaluateVerification, remainingCooldownMs, type CodeDigestInput, type VerificationState } from "@app-foundation/verification";
+declare const binding: CodeDigestInput;
+declare const state: VerificationState;
+const accepted: Promise<EmailAccepted> = createResendClient({ apiKey: "test-key", from: "sender@example.test" }).send({ to: "user@example.test", subject: "Test", text: "Test" });
+evaluateVerification(state, { nowMs: 1000, maxAttempts: 5, matches: matchesCodeDigest(binding, createCodeDigest(binding)) });
+remainingCooldownMs({ lastIssuedAtMs: null, nowMs: 1000, cooldownMs: 60000 });
 `);
   for (const name of ["consumer.cjs", "consumer.mjs"]) execFileSync(process.execPath, [name], { cwd: directory, stdio: "pipe" });
   execFileSync(process.execPath, [path.join(root, "packages/payments/node_modules/typescript/bin/tsc"), "consumer.ts", "--noEmit", "--strict", "--skipLibCheck", "--target", "ES2022", "--module", "Node16", "--moduleResolution", "Node16"], { cwd: directory, stdio: "pipe" });
-  console.log("Packed artifact installs offline; CommonJS, ESM and TypeScript consumers pass.");
+  console.log("All three tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
 } finally {
   await rm(directory, { recursive: true, force: true });
 }

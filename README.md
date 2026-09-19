@@ -4,11 +4,13 @@ Small, independently versioned building blocks for server applications. The firs
 
 ## Packages
 
-| Package | Scope |
-| --- | --- |
-| `@app-foundation/payments` | Explicit-configuration WeChat Pay API v3 and Alipay clients, signature verification, integer CNY amounts and expected-order matching |
+| Package | Scope | Status |
+| --- | --- | --- |
+| `@app-foundation/payments` | Explicit-configuration WeChat Pay API v3 and Alipay clients, signature verification, integer CNY amounts and expected-order matching | Published 0.1.0 |
+| `@app-foundation/messaging` | Resend transport, sanitized errors, bounded requests and caller-owned idempotency | Local 0.1.0 candidate, unpublished |
+| `@app-foundation/verification` | Scoped code digests, numeric generation, verification and cooldown rules | Local 0.1.0 candidate, unpublished |
 
-Future email, verification and media work is a candidate list, not a set of empty packages. There is no shared online payment server.
+Mail templates, code storage and account transactions remain consumer-owned. Media and other candidates are tracked without placeholder packages. There is no shared online payment or identity server.
 
 ## Development
 
@@ -17,13 +19,15 @@ Node >=22 and pnpm 11.22.0 are required.
 ```sh
 pnpm install --frozen-lockfile
 pnpm check
-pnpm pack:payments
+pnpm pack:all
 node scripts/verify-package.mjs
 ```
 
-Tests generate ephemeral keys and inject HTTP responses. They never use merchant credentials or real payment endpoints. Packaging is verified with fresh ESM, CommonJS and TypeScript consumers.
+Tests generate ephemeral keys and inject HTTP responses. They never use merchant credentials, real payment endpoints or send email. Packaging is verified with fresh ESM, CommonJS and TypeScript consumers.
 
 ## Distribution
+
+Only payments is published. Messaging and verification remain local candidates; do not add them to application runtime dependencies until an immutable release is available.
 
 The GitHub release `v0.1.0` supplies the npm-format package artifact and SHA-256 checksum. Install the exact release URL and commit the resulting dependency lockfile. Nothing is published to the npm registry in this release.
 

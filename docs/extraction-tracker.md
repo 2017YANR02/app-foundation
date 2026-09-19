@@ -50,4 +50,27 @@ Consumers: CubeRoot keeps compatibility adapters and existing business routes; M
 - Initial source CI: https://github.com/2017YANR02/app-foundation/actions/runs/35442183273 — Node 22 and 24 both passed protocol tests, packing and isolated installation checks.
 - Published asset: `app-foundation-payments-0.1.0.tgz`, SHA-256 `27c2db1db0643ab6ca962cf43c0675d7b77794dedf1eefd81dd701a2082710b3`. Anonymous public download matches the locally reviewed package. `SHA256SUMS` is attached to the same release.
 - This is a GitHub Release package, not an npm registry publication. Consumers pin the full versioned asset URL and lockfile integrity. Future changes require a new reviewed version; do not overwrite released assets or move tags.
-- Next: each consumer separately verifies merchant/product permissions, expected payment identity, atomic event consumption, order lifecycle and live acceptance before an independently authorized deployment. Messaging, OTP and media extraction remain deferred.
+- Next: each consumer separately verifies merchant/product permissions, expected payment identity, atomic event consumption, order lifecycle and live acceptance before an independently authorized deployment. Messaging, OTP and media were deferred at that release; the newer local preparation below supersedes messaging/OTP status.
+
+## Messaging and verification preparation — 2026-09-19
+
+The owner authorized starting the next extraction locally, retaining the current no-push/no-publication boundary. Implement `@app-foundation/messaging` and `@app-foundation/verification` as actual independent packages; do not create empty future modules. Mail templates, sender identities, secrets, message queues, code storage and account transactions stay in each application. No private application source, user data or credentials enter this public repository.
+
+- [x] Explicit-config Resend transport with stable sanitized errors, bounded I/O, optional idempotency and injected transport tests.
+- [x] Purpose/channel/target/challenge-bound OTP primitives and pure lifecycle decisions; no storage, env reads or silent legacy migration.
+- [x] Compare both consumer contracts, pack/install in disposable consumers, test CJS/ESM/TypeScript, retain provenance and license.
+- [x] Local checks and local commit only. New artifacts remain unpublished candidates; production manifests must not depend on local paths or nonexistent releases.
+
+Media Range/container parsing is the next candidate to validate. SMS, password compatibility, HTTP utilities and operations templates require actual shared demand. Authentication/accounts, commerce/authorization workflows, database transactions and full storage services remain application-owned. This work does not cancel the existing payment consumer roadmap.
+
+### Local evidence for the two new candidates
+
+- Node 24.19.0 `pnpm check`: 60 tests pass (payments 30, messaging 16, verification 14), including timeout/body bounds, sanitized errors, header injection, acceptance validation, scoped digests, expiry/attempt limits and consumption. The database example is an in-memory contract, not proof of consumer transaction correctness.
+- `pnpm pack:all` and `node scripts/verify-package.mjs`: all three current tarballs pass file allowlists, offline script-disabled installation and CommonJS/ESM/strict TypeScript consumption. The existing payments artifact hash is unchanged from the published release.
+- A private harness reads both actual email modules into isolated temporary consumers, supplies synthetic environment values and fake fetch, and compares seven actual payloads against the packed messaging export. Three contract groups pass, including configuration lifetime, bilingual templates, unsubscribe headers and error differences. The harness contains application-specific knowledge and stays outside this public repository.
+- Deliberate candidate changes: success requires a valid provider message ID; an empty 2xx is now an unknown INVALID_RESPONSE. Network/provider exceptions are sanitized. Existing wrappers and production dependencies have not been switched. Application adoption needs tests for pending/failed/retry behavior under those differences.
+- Baselines: consumer A registration verification 7 tests; consumer B notification deduplication/unsubscribe 3 tests. Independent package review found no blocking issue. The two new package directories pass redacted secret scanning.
+- Candidate SHA-256: messaging `13d2ba757089cbe6b27ce2108ab1b3a4ad72e30c0ba9e320c3bd9d516bb76f51`; verification `7af6ab435e354a170c3811c5aa8365c86a35a7bd51cf77687798a0ec3111de62`.
+- CI configuration now covers all packages, but the changed workflow has not run on GitHub. No push, tag, release, actual email, database migration or application deployment occurred. Candidate 0.1.0 versions are package-specific and are not assets of the existing payments v0.1.0 release.
+
+Next local work: validate the single-range media contract before deciding on a package. Future consumer adoption must use a newly published immutable artifact, preserve templates/configuration, and stage legacy OTP compatibility and application transactions separately. Do not overwrite the existing payment release.

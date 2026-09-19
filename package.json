@@ -2,10 +2,15 @@
   "name": "app-foundation-workspace",
   "private": true,
   "packageManager": "pnpm@11.22.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "build": "pnpm --filter @app-foundation/payments build",
-    "check": "pnpm --filter @app-foundation/payments check",
-    "pack:payments": "pnpm --filter @app-foundation/payments pack --pack-destination artifacts"
+    "build": "pnpm -r build",
+    "check": "pnpm -r check",
+    "pack:payments": "pnpm --filter @app-foundation/payments pack --pack-destination artifacts",
+    "pack:messaging": "pnpm --filter @app-foundation/messaging pack --pack-destination artifacts",
+    "pack:verification": "pnpm --filter @app-foundation/verification pack --pack-destination artifacts",
+    "pack:all": "pnpm pack:payments && pnpm pack:messaging && pnpm pack:verification"
   }
 }
