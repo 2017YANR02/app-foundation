@@ -1,0 +1,11 @@
+{
+  "name": "app-foundation-workspace",
+  "private": true,
+  "packageManager": "pnpm@11.22.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "pnpm --filter @app-foundation/payments build",
+    "check": "pnpm --filter @app-foundation/payments check",
+    "pack:payments": "pnpm --filter @app-foundation/payments pack --pack-destination artifacts"
+  }
+}
