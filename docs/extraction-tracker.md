@@ -2,7 +2,7 @@
 
 ## Scope and authorization — 2026-09-19
 
-The owner authorized extracting the first payment library, maintaining tracking documents and publishing its GitHub repository. The owner explicitly selected public visibility. Consumer websites are not authorized for deployment. No remote repository exists yet.
+The owner authorized extracting the first payment library, maintaining tracking documents and publishing its GitHub repository. The owner explicitly selected public visibility. Consumer websites are not authorized for deployment. The public repository and v0.1.0 release are now published; consumer application changes remain local.
 
 Source: CubeRoot `e35459d59`, `core/apps/api/src/payment/wechat.ts`, `alipay.ts`, and the necessary signing helpers from `core/packages/shared/src/payment.ts`. Preserve GPL-3.0 and attribution. No business records, credentials, application code or unrelated workspace dependencies are published.
 
@@ -14,9 +14,9 @@ One package, `@app-foundation/payments`, exposes `core`, `wechat`, and `alipay` 
 - [x] Implement and test explicit-config WeChat client, including close-order and signed responses.
 - [x] Implement and test explicit-config Alipay client, including verified query responses and close-order.
 - [x] Validate two consumer adapters against the packed artifact, with no runtime source-path imports.
-- [ ] Run isolated signed-response/notification negative cases and consumer regression checks.
-- [ ] Review packaged files and secret exposure; publish source, version and release artifact to GitHub.
-- [ ] Install the released exact artifact in consumers; record evidence and remaining live readiness.
+- [x] Run isolated signed-response/notification negative cases and consumer regression checks.
+- [x] Review packaged files and secret exposure; publish source, version and release artifact to GitHub.
+- [x] Install the released exact artifact in consumers; record evidence and remaining live readiness.
 
 ## Contract
 
@@ -34,9 +34,20 @@ Consumers: CubeRoot keeps compatibility adapters and existing business routes; M
 - Tarball allowlist contains compiled JavaScript/declarations, corresponding TypeScript source, build config, README, NOTICE and LICENSE only. Staged source secret scan passed.
 - This establishes protocol and packaging evidence, not live merchant enablement, real payments or application settlement correctness.
 
-## Consumer validation before publication
+## Consumer validation
 
 - CubeRoot: 3 targeted suites / 40 tests pass; API typecheck and architecture boundary audit pass. Existing exported adapters and environment names are preserved.
 - Mira: 2 targeted suites / 12 tests pass; direct merchant adapter requires explicit enablement and verifies expected order/amount. The current CloudBase adapter consumes the shared exact CNY converter; its payment authority is unchanged.
 - Existing CubeRoot membership settlement does not yet bind every provider result to the expected amount/provider and atomically grant entitlements. This pre-existing application issue is tracked separately as a deployment blocker; library signature checks do not resolve it.
-- Consumer adoption is local only. Temporary packed-file dependencies are for verification and will be replaced by the released exact GitHub artifact URL before consumer commits.
+- Consumer adoption is local only. Both applications now install the exact GitHub Release artifact URL, with matching lockfile integrity; temporary packed-file dependencies have been removed. The original full checks used the byte-identical reviewed artifact before publication.
+- Mira full `pnpm check` passes: boundaries, offline mini-program checks, lint, typecheck, 53 files / 350 Web tests, production build and artifact isolation. No consumer deployment or live funds were involved.
+
+## Publication evidence
+
+- Public repository: https://github.com/2017YANR02/app-foundation
+- Release: https://github.com/2017YANR02/app-foundation/releases/tag/v0.1.0
+- Annotated tag `v0.1.0` targets source commit `443bdbeab9e4b951fed22608e4abcbe4229eabe9`.
+- Initial source CI: https://github.com/2017YANR02/app-foundation/actions/runs/35442183273 — Node 22 and 24 both passed protocol tests, packing and isolated installation checks.
+- Published asset: `app-foundation-payments-0.1.0.tgz`, SHA-256 `27c2db1db0643ab6ca962cf43c0675d7b77794dedf1eefd81dd701a2082710b3`. Anonymous public download matches the locally reviewed package. `SHA256SUMS` is attached to the same release.
+- This is a GitHub Release package, not an npm registry publication. Consumers pin the full versioned asset URL and lockfile integrity. Future changes require a new reviewed version; do not overwrite released assets or move tags.
+- Next: each consumer separately verifies merchant/product permissions, expected payment identity, atomic event consumption, order lifecycle and live acceptance before an independently authorized deployment. Messaging, OTP and media extraction remain deferred.
