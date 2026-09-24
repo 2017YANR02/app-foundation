@@ -90,7 +90,7 @@ The owner subsequently authorized necessary pushes. Prepare an immutable v0.2.0 
 - Both consumers now have local adapters pinned to the published artifacts with integrity checks. Application verification, commits and deployment evidence remain in their own repositories; this public record includes no private application logic. No consumer deployment or live email/payment is implied.
 - Media single-range parsing remains application-local: the present small parser overlap does not justify another distribution unit. Multipart/status/stream authorization differ; MP4 rules differ materially. Revisit after a shared contract change creates a real maintenance need.
 
-## SMS verification transport — 2026-09-23 local candidate
+## SMS verification transport — 2026-09-23
 
 The owner requested a shared SMS component for Mira and CubeRoot and separately approved publishing a versioned `app-foundation` release. The shared scope is one `SmsCodeSender` contract, explicit-config Aliyun Dysmsapi V2 and Tencent SendSms transport adapters, sanitized acceptance/error outcomes, and pure 60-second retry timing. Aliyun signing is adapted from the owner's GPL CubeRoot transport; the Tencent request adapter follows the public provider API and contains no private Mira source. The applications continue to own phone eligibility, templates, SDK credentials, code/challenge storage, rate limits, account identity, verification and delivery callbacks. A provider `OK` is submission acceptance, not handset delivery; timeout/network results are unknown and never trigger an automatic resend.
 
@@ -102,3 +102,8 @@ Next: push this source, require exact-commit CI, publish only the new SMS asset 
 
 - Source commit `7a51f1081bea2401765aae428bad6f006f7d7da0` passed [Node 22/24 CI](https://github.com/2017YANR02/app-foundation/actions/runs/35962539609) and was published as [v0.3.0](https://github.com/2017YANR02/app-foundation/releases/tag/v0.3.0). The SMS 0.1.0 asset SHA-256 is `82356764e08b2ea64f213f267c7b3cd56b07e682fdf6cf0b4114d2f0fb64f680`; existing releases were not changed.
 - Consumer integration review found one missing invariant: Tencent's success status must name the requested recipient. No consumer had adopted 0.1.0. The corrective 0.1.1 source and tests require exact `SendStatusSet[0].PhoneNumber` equality before acceptance, including a wrong-recipient negative test. Keep v0.3.0 immutable but supersede it with a new release; consumers must pin 0.1.1, not 0.1.0.
+
+### Published fixed version and consumer boundary
+
+- [v0.3.1](https://github.com/2017YANR02/app-foundation/releases/tag/v0.3.1) contains SMS 0.1.1 from source commit `12ec3c4e65d60f4b3dc3c59633ab06bb70479ab3`. [CI 35963093557](https://github.com/2017YANR02/app-foundation/actions/runs/35963093557) passed Node 22/24; Node 16.13 CommonJS import was also checked for Mira CloudBase compatibility. The released tarball SHA-256 is `f334bf0060c1e85df4ab7c233e461f96d4db2244de50c22e23502515b3c2e0b4` and matches the release asset digest.
+- Mira and CubeRoot locally pin this exact asset and lockfile integrity. Mira wraps its existing Tencent SDK; CubeRoot uses the standard Aliyun Dysmsapi transport. Each application retains its own credentials, templates, cooldown enforcement, account state and verification. Shared code never automatically retries or claims handset delivery. Application rollout and actual handset acceptance are separate from package publication.
