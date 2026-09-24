@@ -9,6 +9,7 @@ Small, independently versioned building blocks for server applications. The firs
 | `@app-foundation/payments` | Explicit-configuration WeChat Pay API v3 and Alipay clients, signature verification, integer CNY amounts and expected-order matching | Published 0.1.0 |
 | `@app-foundation/messaging` | Resend transport, sanitized errors, bounded requests and caller-owned idempotency | Published 0.1.0 in release v0.2.0 |
 | `@app-foundation/verification` | Scoped code digests, numeric generation, verification and cooldown rules | Published 0.1.0 in release v0.2.0 |
+| `@app-foundation/sms` | Aliyun and Tencent SMS submission behind one sender contract, sanitized errors and resend timing | Local 0.1.0 candidate; not yet published |
 
 Mail templates, code storage and account transactions remain consumer-owned. Media and other candidates are tracked without placeholder packages. There is no shared online payment or identity server.
 
@@ -23,7 +24,7 @@ pnpm pack:all
 node scripts/verify-package.mjs
 ```
 
-Tests generate ephemeral keys and inject HTTP responses. They never use merchant credentials, real payment endpoints or send email. Packaging is verified with fresh ESM, CommonJS and TypeScript consumers.
+Tests generate ephemeral keys and inject HTTP/provider responses. They never use merchant credentials, real payment endpoints or send email/SMS. Packaging is verified with fresh ESM, CommonJS and TypeScript consumers.
 
 ## Distribution
 

@@ -26,6 +26,15 @@ importers:
         specifier: 5.7.3
         version: 5.7.3
 
+  packages/sms:
+    devDependencies:
+      '@types/node':
+        specifier: 22.15.30
+        version: 22.15.30
+      typescript:
+        specifier: 5.7.3
+        version: 5.7.3
+
   packages/verification:
     devDependencies:
       '@types/node':

@@ -11,6 +11,7 @@
     "pack:payments": "pnpm --filter @app-foundation/payments pack --pack-destination artifacts",
     "pack:messaging": "pnpm --filter @app-foundation/messaging pack --pack-destination artifacts",
     "pack:verification": "pnpm --filter @app-foundation/verification pack --pack-destination artifacts",
-    "pack:all": "pnpm pack:payments && pnpm pack:messaging && pnpm pack:verification"
+    "pack:sms": "pnpm --filter @app-foundation/sms pack --pack-destination artifacts",
+    "pack:all": "pnpm pack:payments && pnpm pack:messaging && pnpm pack:verification && pnpm pack:sms"
   }
 }
