@@ -58,24 +58,26 @@ test("Tencent builds one domestic SendSms request and accepts only explicit Ok",
   let request;
   const sender = createTencentSmsSender(tencent, { send: async input => {
     request = input;
-    return { SendStatusSet: [{ Code: "Ok", Message: "send success" }], RequestId: "synthetic-request" };
+    return { SendStatusSet: [{ Code: "Ok", PhoneNumber: input.PhoneNumberSet[0], Message: "send success" }], RequestId: "synthetic-request" };
   } });
   assert.deepEqual(await sender.sendCode({ phone: "13800138000", code: "000123", templateId: "456" }),
     { accepted: true, requestId: "synthetic-request" });
   assert.deepEqual(request, { SmsSdkAppId: "123456", SignName: "Test", TemplateId: "456",
     TemplateParamSet: ["000123"], PhoneNumberSet: ["+8613800138000"] });
-  const rejected = createTencentSmsSender(tencent, { send: async () => ({ SendStatusSet: [{ Code: "FailedOperation", Message: "private" }] }) });
+  const rejected = createTencentSmsSender(tencent, { send: async input => ({ SendStatusSet: [{ Code: "FailedOperation", PhoneNumber: input.PhoneNumberSet[0], Message: "private" }] }) });
   await assert.rejects(rejected.sendCode(message), error => error.code === "PROVIDER_REJECTED"
     && error.providerCode === "FailedOperation" && !error.message.includes("private"));
   const missing = createTencentSmsSender(tencent, { send: async () => ({ SendStatusSet: [] }) });
   await assert.rejects(missing.sendCode(message), { code: "INVALID_RESPONSE" });
+  const wrongRecipient = createTencentSmsSender(tencent, { send: async () => ({ SendStatusSet: [{ Code: "Ok", PhoneNumber: "+8613900138000" }] }) });
+  await assert.rejects(wrongRecipient.sendCode(message), { code: "INVALID_RESPONSE" });
   const timedOut = createTencentSmsSender(tencent, { send: async () => { throw new Error("SDK timeout with phone"); } });
   await assert.rejects(timedOut.sendCode(message), error => error.code === "NETWORK_ERROR" && !error.message.includes("phone"));
 });
 
 test("input and configuration errors never make a provider call", async () => {
   let calls = 0;
-  const tencentSender = createTencentSmsSender(tencent, { send: async () => { calls++; return { SendStatusSet: [{ Code: "Ok" }] }; } });
+  const tencentSender = createTencentSmsSender(tencent, { send: async input => { calls++; return { SendStatusSet: [{ Code: "Ok", PhoneNumber: input.PhoneNumberSet[0] }] }; } });
   for (const patch of [{ phone: "123" }, { code: "12345" }, { templateId: "bad template" }, { code: "１２３４５６" }]) {
     await assert.rejects(tencentSender.sendCode({ ...message, ...patch }), { code: "INVALID_INPUT" });
   }

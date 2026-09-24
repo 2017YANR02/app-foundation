@@ -1,12 +1,12 @@
 # @app-foundation/sms
 
-Version 0.1.0. Explicit-config server-side SMS transports for Aliyun Dysmsapi V2 and Tencent Cloud SendSms, plus a provider-neutral resend interval. No account, database, template content, credentials or environment reads live in this package. The caller owns code generation, challenge persistence, phone eligibility, rate limits, verification and business transactions.
+Version 0.1.1. Explicit-config server-side SMS transports for Aliyun Dysmsapi V2 and Tencent Cloud SendSms, plus a provider-neutral resend interval. No account, database, template content, credentials or environment reads live in this package. The caller owns code generation, challenge persistence, phone eligibility, rate limits, verification and business transactions.
 
 Both senders implement `SmsCodeSender.sendCode({ phone, code, templateId? })` and return `{ accepted: true, requestId? }` only when the provider explicitly accepts a submission. Acceptance is **not handset delivery**. They never resend automatically. An `SmsError` has a stable `code`: `CONFIGURATION`, `INVALID_INPUT`, `TIMEOUT`, `NETWORK_ERROR`, `PROVIDER_REJECTED` or `INVALID_RESPONSE`; only a syntactically bounded provider code may accompany it. Raw provider messages, phone numbers, verification codes, credentials and causes are not exposed.
 
 Use `createAliyunSmsSender({ accessKeyId, accessKeySecret, signName, templateCode }, { fetch?, now?, nonce? })` on the Aliyun side. It preserves the existing Dysmsapi V2 HMAC-SHA1 GET wire format and defaults to a 10-second technical deadline. A timeout or network error is an **unknown delivery result**, not proof that no SMS was sent. This transport uses `fetch`; the application runtime must supply it when it is not global.
 
-Use `createTencentSmsSender({ smsSdkAppId, signName, templateId }, { send })` with the application's own Tencent SDK client. The package builds one `SendSms` request and accepts only a single `SendStatusSet[0].Code === "Ok"`. SDK credentials, region and transport timeout remain outside the package. Errors from the injected SDK are treated as unknown delivery results.
+Use `createTencentSmsSender({ smsSdkAppId, signName, templateId }, { send })` with the application's own Tencent SDK client. The package builds one `SendSms` request and accepts only a single status whose phone matches the requested recipient and whose `Code === "Ok"`. SDK credentials, region and transport timeout remain outside the package. Errors from the injected SDK are treated as unknown delivery results.
 
 `remainingSmsRetryMs({ lastAttemptAtMs, nowMs, intervalMs? })` uses trusted Unix milliseconds and defaults to 60 seconds. Count attempts with unknown results toward the interval. The UI may still allow a received code to be entered; actual verification must use the application's stored challenge and ownership checks. No timer alone proves delivery, enforces distributed rate limits or permits blind retries.
 

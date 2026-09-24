@@ -189,6 +189,7 @@ export function createTencentSmsSender(configuration: TencentSmsConfiguration, d
         || !record(response.SendStatusSet[0]) || typeof response.SendStatusSet[0].Code !== "string") {
         throw new SmsError("INVALID_RESPONSE");
       }
+      if (response.SendStatusSet[0].PhoneNumber !== request.PhoneNumberSet[0]) throw new SmsError("INVALID_RESPONSE");
       if (response.SendStatusSet[0].Code !== "Ok") throw new SmsError("PROVIDER_REJECTED", safeProviderCode(response.SendStatusSet[0].Code));
       return { accepted: true, ...(safeProviderCode(response.RequestId) ? { requestId: response.RequestId as string } : {}) };
     },

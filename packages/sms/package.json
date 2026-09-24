@@ -1,6 +1,6 @@
 {
   "name": "@app-foundation/sms",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Server-side SMS verification transports and retry timing",
   "license": "GPL-3.0-only",
   "type": "commonjs",

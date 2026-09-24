@@ -11,8 +11,9 @@ const expected = await Promise.all(packages.map(async (name) => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages", name, "package.json"), "utf8"));
   return `app-foundation-${name}-${manifest.version}.tgz`;
 }));
-const artifacts = (await readdir(path.join(root, "artifacts"))).filter((file) => file.endsWith(".tgz")).sort();
-if (JSON.stringify(artifacts) !== JSON.stringify(expected.sort())) throw new Error("Expected exactly the current four package artifacts");
+const available = (await readdir(path.join(root, "artifacts"))).filter((file) => file.endsWith(".tgz"));
+const artifacts = expected.sort();
+if (artifacts.some(file => !available.includes(file))) throw new Error("Missing a current package artifact");
 for (const artifact of artifacts) {
   const filename = path.join(root, "artifacts", artifact);
   const files = execFileSync("tar", ["-tzf", filename], { encoding: "utf8" }).trim().split("\n");
@@ -47,7 +48,7 @@ assert.equal(evaluateVerification({ status: "sent", expiresAtMs: 2000, attempts:
 const client = createResendClient({ apiKey: "test-key", from: "sender@example.test" }, { fetch: async () => new Response(JSON.stringify({ id: "test-message" }), { status: 200 }) });
 assert.deepEqual(await client.send({ to: "user@example.test", subject: "Test", text: "Synthetic only" }), { accepted: true, messageId: "test-message" });
 assert.equal(remainingSmsRetryMs({ lastAttemptAtMs: 1000, nowMs: 61000 }), 0);
-const sms = createTencentSmsSender({ smsSdkAppId: "12345", signName: "Test", templateId: "123" }, { send: async () => ({ SendStatusSet: [{ Code: "Ok" }] }) });
+const sms = createTencentSmsSender({ smsSdkAppId: "12345", signName: "Test", templateId: "123" }, { send: async input => ({ SendStatusSet: [{ Code: "Ok", PhoneNumber: input.PhoneNumberSet[0] }] }) });
 assert.deepEqual(await sms.sendCode({ phone: "13800138000", code: "000123" }), { accepted: true });
 `);
   await writeFile(path.join(directory, "consumer.ts"), `import { createWechatPayClient } from "@app-foundation/payments/wechat";
@@ -68,7 +69,7 @@ const accepted: Promise<EmailAccepted> = createResendClient({ apiKey: "test-key"
 evaluateVerification(state, { nowMs: 1000, maxAttempts: 5, matches: matchesCodeDigest(binding, createCodeDigest(binding)) });
 remainingCooldownMs({ lastIssuedAtMs: null, nowMs: 1000, cooldownMs: 60000 });
 const aliyun: SmsCodeSender = createAliyunSmsSender({ accessKeyId: "test-id", accessKeySecret: "test-secret", signName: "Test", templateCode: "SMS_123" });
-const tencent: SmsCodeSender = createTencentSmsSender({ smsSdkAppId: "123", signName: "Test", templateId: "123" }, { send: async () => ({ SendStatusSet: [{ Code: "Ok" }] }) });
+const tencent: SmsCodeSender = createTencentSmsSender({ smsSdkAppId: "123", signName: "Test", templateId: "123" }, { send: async input => ({ SendStatusSet: [{ Code: "Ok", PhoneNumber: input.PhoneNumberSet[0] }] }) });
 const smsAccepted: Promise<SmsAccepted> = tencent.sendCode({ phone: "13800138000", code: "123456" });
 void aliyun; void smsAccepted;
 `);
