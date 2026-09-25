@@ -95,6 +95,16 @@ test("rejects malformed amounts, identifiers, callback URLs before sending", asy
 
 test("query requires signed response, exact merchant/app/order and valid amount/state", async () => {
   assert.equal((await setup({ ...paid, trade_state: "NOTPAY", transaction_id: undefined }).client.queryOrder(order.outTradeNo)).paid, false);
+  for (const trade_state of ["NOTPAY", "CLOSED"]) {
+    const { amount: _omitted, ...withoutAmount } = paid;
+    const result = await setup({ ...withoutAmount, trade_state, transaction_id: undefined }).client.queryOrder(order.outTradeNo);
+    assert.equal(result.paid, false); assert.equal(result.raw.trade_state, trade_state);
+  }
+  for (const trade_state of ["SUCCESS", "REFUND"]) {
+    const { amount: _omitted, ...withoutAmount } = paid;
+    await assert.rejects(setup({ ...withoutAmount, trade_state }).client.queryOrder(order.outTradeNo), errorCode("INVALID_RESPONSE"));
+  }
+  await assert.rejects(setup({ ...paid, trade_state: "CLOSED", amount: { total: 0, currency: "CNY" } }).client.queryOrder(order.outTradeNo), errorCode("INVALID_RESPONSE"));
   for (const change of [{ mchid: "1900000002" }, { appid: "wxother" }, { out_trade_no: "another_order" }]) await assert.rejects(setup({ ...paid, ...change }).client.queryOrder(order.outTradeNo), errorCode("IDENTITY_MISMATCH"));
   for (const change of [{ amount: { total: 150, currency: "USD" } }, { amount: { total: 1.5, currency: "CNY" } }, { amount: { total: 150, currency: "CNY", payer_total: 200 } }, { transaction_id: undefined }, { trade_state: "UNKNOWN" }]) await assert.rejects(setup({ ...paid, ...change }).client.queryOrder(order.outTradeNo), errorCode("INVALID_RESPONSE"));
   await assert.rejects(setup(() => response(paid, 200, { signature: "bad" })).client.queryOrder(order.outTradeNo), errorCode("SIGNATURE_INVALID"));

@@ -137,12 +137,19 @@ export function createWechatPayClient(config: WechatPayConfig, dependencies: Cli
     identity(record, true);
     const order = responseText(record.out_trade_no, "order number");
     if (expectedOrder !== undefined && order !== expectedOrder) throw new PaymentError("IDENTITY_MISMATCH", "WeChat order mismatch");
-    if (!isRecord(record.amount) || record.amount.currency !== "CNY") return invalid("Invalid WeChat currency or amount");
-    const total = responseAmount(record.amount.total);
-    if (record.amount.payer_total !== undefined && (!Number.isSafeInteger(record.amount.payer_total) || (record.amount.payer_total as number) < 0 || (record.amount.payer_total as number) > total)) return invalid("Invalid WeChat payer amount");
-    if (record.amount.payer_currency !== undefined && record.amount.payer_currency !== "CNY") return invalid("Invalid WeChat payer currency");
-    if (!["SUCCESS", "REFUND", "NOTPAY", "CLOSED", "REVOKED", "USERPAYING", "PAYERROR"].includes(String(record.trade_state))) return invalid("Invalid WeChat trade state");
-    if (record.trade_state === "SUCCESS") responseText(record.transaction_id, "transaction ID");
+    const state = String(record.trade_state);
+    if (!["SUCCESS", "REFUND", "NOTPAY", "CLOSED", "REVOKED", "USERPAYING", "PAYERROR"].includes(state)) return invalid("Invalid WeChat trade state");
+    // The query API marks amount optional; a signed CLOSED/NOTPAY response can
+    // omit it. Never accept a money-bearing SUCCESS/REFUND without an amount.
+    if (record.amount === undefined) {
+      if (state === "SUCCESS" || state === "REFUND") return invalid("Missing WeChat payment amount");
+    } else {
+      if (!isRecord(record.amount) || record.amount.currency !== "CNY") return invalid("Invalid WeChat currency or amount");
+      const total = responseAmount(record.amount.total);
+      if (record.amount.payer_total !== undefined && (!Number.isSafeInteger(record.amount.payer_total) || (record.amount.payer_total as number) < 0 || (record.amount.payer_total as number) > total)) return invalid("Invalid WeChat payer amount");
+      if (record.amount.payer_currency !== undefined && record.amount.payer_currency !== "CNY") return invalid("Invalid WeChat payer currency");
+    }
+    if (state === "SUCCESS") responseText(record.transaction_id, "transaction ID");
     return record;
   }
   function orderBody(input: WechatOrderInput, appId = c.appId) {

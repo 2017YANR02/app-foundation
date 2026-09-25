@@ -1,6 +1,6 @@
 {
   "name": "@app-foundation/payments",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Independent server-side WeChat Pay and Alipay clients",
   "license": "GPL-3.0-only",
   "type": "commonjs",

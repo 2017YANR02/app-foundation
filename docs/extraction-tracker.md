@@ -107,3 +107,9 @@ Next: push this source, require exact-commit CI, publish only the new SMS asset 
 
 - [v0.3.1](https://github.com/2017YANR02/app-foundation/releases/tag/v0.3.1) contains SMS 0.1.1 from source commit `12ec3c4e65d60f4b3dc3c59633ab06bb70479ab3`. [CI 35963093557](https://github.com/2017YANR02/app-foundation/actions/runs/35963093557) passed Node 22/24; Node 16.13 CommonJS import was also checked for Mira CloudBase compatibility. The released tarball SHA-256 is `f334bf0060c1e85df4ab7c233e461f96d4db2244de50c22e23502515b3c2e0b4` and matches the release asset digest.
 - Mira and CubeRoot locally pin this exact asset and lockfile integrity. Mira wraps its existing Tencent SDK; CubeRoot uses the standard Aliyun Dysmsapi transport. Each application retains its own credentials, templates, cooldown enforcement, account state and verification. Shared code never automatically retries or claims handset delivery. Application rollout and actual handset acceptance are separate from package publication.
+
+### Payment query correction candidate (2026-09-25)
+
+- A real signed WeChat API v3 query returned `CLOSED` for an unpaid order with no `amount` member, as permitted by the query contract. Payment package 0.1.0 rejected every such result as `INVALID_RESPONSE`, blocking Mira from recording a confirmed closure.
+- Payments 0.1.1 accepts an omitted amount only for non-success states, while still validating any supplied amount and requiring the amount for `SUCCESS` and `REFUND`. Merchant, application, order and signature checks remain mandatory. Synthetic tests cover omitted and malformed amounts; `pnpm check`, `pnpm pack:payments`, and isolated package consumption passed locally. The candidate tarball SHA-256 is `901c2815c97457f3a69382cb14095db4fc814650b70ec2baa5c9cc7cc4459bd2`.
+- A new immutable release is required before either consumer changes its exact dependency. This package change does not settle or cancel any application order by itself.
