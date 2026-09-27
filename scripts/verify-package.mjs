@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const packages = ["payments", "messaging", "verification", "sms"];
+const packages = ["payments", "messaging", "verification", "sms", "account-policy"];
 const expected = await Promise.all(packages.map(async (name) => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages", name, "package.json"), "utf8"));
   return `app-foundation-${name}-${manifest.version}.tgz`;
@@ -33,6 +33,7 @@ assert.equal(typeof require("@app-foundation/payments/alipay").createAlipayClien
 assert.equal(typeof require("@app-foundation/messaging").createResendClient, "function");
 assert.equal(require("@app-foundation/verification").generateNumericCode().length, 6);
 assert.equal(typeof require("@app-foundation/sms").createTencentSmsSender, "function");
+assert.equal(require("@app-foundation/account-policy").decideCredentialClaim({ intent: "add", candidateOwner: "unclaimed", currentSlot: "empty" }), "apply");
 `);
   await writeFile(path.join(directory, "consumer.mjs"), `import assert from "node:assert/strict";
 import { createWechatPayClient, createAlipayClient, decimalToMinor } from "@app-foundation/payments";
@@ -42,6 +43,7 @@ assert.equal(decimalToMinor("0.01"), 1);
 import { createResendClient } from "@app-foundation/messaging";
 import { createCodeDigest, matchesCodeDigest, evaluateVerification } from "@app-foundation/verification";
 import { createTencentSmsSender, remainingSmsRetryMs } from "@app-foundation/sms";
+import { decideCredentialClaim, decideCredentialRemoval } from "@app-foundation/account-policy";
 const binding = { secret: "0".repeat(32), purpose: "register", channel: "email", target: "user@example.test", challengeId: "example", code: "123456" };
 assert.ok(matchesCodeDigest(binding, createCodeDigest(binding)));
 assert.equal(evaluateVerification({ status: "sent", expiresAtMs: 2000, attempts: 0, consumedAtMs: null }, { nowMs: 1000, maxAttempts: 5, matches: true }).reason, "verified");
@@ -50,6 +52,8 @@ assert.deepEqual(await client.send({ to: "user@example.test", subject: "Test", t
 assert.equal(remainingSmsRetryMs({ lastAttemptAtMs: 1000, nowMs: 61000 }), 0);
 const sms = createTencentSmsSender({ smsSdkAppId: "12345", signName: "Test", templateId: "123" }, { send: async input => ({ SendStatusSet: [{ Code: "Ok", PhoneNumber: input.PhoneNumberSet[0] }] }) });
 assert.deepEqual(await sms.sendCode({ phone: "13800138000", code: "000123" }), { accepted: true });
+assert.equal(decideCredentialClaim({ intent: "replace", candidateOwner: "other-account", currentSlot: "different" }), "owner-conflict");
+assert.equal(decideCredentialRemoval({ activeMethodCount: 1, selectedMethodCount: 1 }), "last-method");
 `);
   await writeFile(path.join(directory, "consumer.ts"), `import { createWechatPayClient } from "@app-foundation/payments/wechat";
 import { createAlipayClient } from "@app-foundation/payments/alipay";
@@ -63,6 +67,7 @@ createAlipayClient(alipayConfig).queryTrade("order-123");
 import { createResendClient, type EmailAccepted } from "@app-foundation/messaging";
 import { createCodeDigest, matchesCodeDigest, evaluateVerification, remainingCooldownMs, type CodeDigestInput, type VerificationState } from "@app-foundation/verification";
 import { createAliyunSmsSender, createTencentSmsSender, type SmsCodeSender, type SmsAccepted } from "@app-foundation/sms";
+import { decideCredentialClaim, decideCredentialRemoval, type CredentialClaimDecision, type CredentialRemovalDecision } from "@app-foundation/account-policy";
 declare const binding: CodeDigestInput;
 declare const state: VerificationState;
 const accepted: Promise<EmailAccepted> = createResendClient({ apiKey: "test-key", from: "sender@example.test" }).send({ to: "user@example.test", subject: "Test", text: "Test" });
@@ -72,10 +77,13 @@ const aliyun: SmsCodeSender = createAliyunSmsSender({ accessKeyId: "test-id", ac
 const tencent: SmsCodeSender = createTencentSmsSender({ smsSdkAppId: "123", signName: "Test", templateId: "123" }, { send: async input => ({ SendStatusSet: [{ Code: "Ok", PhoneNumber: input.PhoneNumberSet[0] }] }) });
 const smsAccepted: Promise<SmsAccepted> = tencent.sendCode({ phone: "13800138000", code: "123456" });
 void aliyun; void smsAccepted;
+const claim: CredentialClaimDecision = decideCredentialClaim({ intent: "add", candidateOwner: "unclaimed", currentSlot: "empty" });
+const removal: CredentialRemovalDecision = decideCredentialRemoval({ activeMethodCount: 2, selectedMethodCount: 1 });
+void claim; void removal;
 `);
   for (const name of ["consumer.cjs", "consumer.mjs"]) execFileSync(process.execPath, [name], { cwd: directory, stdio: "pipe" });
   execFileSync(process.execPath, [path.join(root, "packages/payments/node_modules/typescript/bin/tsc"), "consumer.ts", "--noEmit", "--strict", "--skipLibCheck", "--target", "ES2022", "--module", "Node16", "--moduleResolution", "Node16"], { cwd: directory, stdio: "pipe" });
-  console.log("All four tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
+  console.log("All five tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
 } finally {
   await rm(directory, { recursive: true, force: true });
 }

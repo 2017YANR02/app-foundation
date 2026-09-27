@@ -113,3 +113,34 @@ Next: push this source, require exact-commit CI, publish only the new SMS asset 
 - A real signed WeChat API v3 query returned `CLOSED` for an unpaid order with no `amount` member, as permitted by the query contract. Payment package 0.1.0 rejected every such result as `INVALID_RESPONSE`, blocking Mira from recording a confirmed closure.
 - Payments 0.1.1 accepts an omitted amount only for non-success states, while still validating any supplied amount and requiring the amount for `SUCCESS` and `REFUND`. Merchant, application, order and signature checks remain mandatory. Synthetic tests cover omitted and malformed amounts; `pnpm check`, `pnpm pack:payments`, and isolated package consumption passed locally. The candidate tarball SHA-256 is `901c2815c97457f3a69382cb14095db4fc814650b70ec2baa5c9cc7cc4459bd2`.
 - Source commit `e340a39` passed [Node 22/24 CI 36133082799](https://github.com/2017YANR02/app-foundation/actions/runs/36133082799) and was published as immutable [v0.3.2](https://github.com/2017YANR02/app-foundation/releases/tag/v0.3.2). The release asset digest matches the reviewed tarball SHA-256 above; earlier versions and assets were not changed. Mira now pins this URL and lockfile integrity, with separate Web deployment and original-order confirmation still required. CubeRoot remains on 0.1.0 because its adapter does not require the new optional-field behavior. Publishing the package does not settle or cancel any application order by itself.
+
+## Account policy candidate (2026-09-27)
+
+The owner requested a shared account foundation after reviewing both Mira and
+CubeRoot, while keeping application identity authority and transactions separate.
+`@app-foundation/account-policy@0.1.0` is a local, unpublished candidate. It
+contains only decisions for credential add/replace and removal of the final
+usable sign-in identity. Inputs are abstract ownership/slot states or counts;
+it contains no account IDs, identity lookup, database, merge, session,
+verification-code or provider code. No private Mira source was copied. The
+package targets Node >=22 Mira Web and CubeRoot API; Mira CloudBase Node 16 is
+outside its direct runtime scope.
+
+- The claim decision prioritizes an `other-account` ownership conflict, keeps
+  an already bound candidate idempotent, and requires explicit `add` versus
+  `replace` intent. Removal requires at least one usable identity after all
+  selected aliases are removed; consumers decide what counts as usable.
+- Consumers must derive authoritative inputs and recheck them within their own
+  lock or transaction. The pure result is not an atomicity, one-time-use or
+  cross-system consistency guarantee. Mira's CloudBase ownership and Web
+  credential mapping remain application-owned.
+- Local Node 24 `pnpm check` passes 72 package tests, including six new policy
+  cases and negative input/precedence cases. `pnpm pack:all` and
+  `node scripts/verify-package.mjs` pass allowlisted tarballs, offline isolated
+  installation and CommonJS/ESM/strict TypeScript consumption. Candidate
+  account-policy tarball SHA-256:
+  `843c707598e8c2868a960ed8d4d50b6e2a17cc2bc0e169f31d6c56e2f09e0eac`.
+  No provider requests, push, tag, publication or application deployment occurred.
+- Consumer adoption must wait for an immutable release asset and exact
+  dependency pin. Temporary local-artifact checks are evidence for the
+  integration, not a production dependency.

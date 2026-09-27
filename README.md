@@ -10,8 +10,9 @@ Small, independently versioned building blocks for server applications. The firs
 | `@app-foundation/messaging` | Resend transport, sanitized errors, bounded requests and caller-owned idempotency | Published 0.1.0 in release v0.2.0 |
 | `@app-foundation/verification` | Scoped code digests, numeric generation, verification and cooldown rules | Published 0.1.0 in release v0.2.0 |
 | `@app-foundation/sms` | Aliyun and Tencent SMS submission behind one sender contract, sanitized errors and resend timing | Published 0.1.1 in release v0.3.1; 0.1.0 superseded before consumer adoption |
+| `@app-foundation/account-policy` | Pure credential claim and last-method removal decisions | Local 0.1.0 candidate; unpublished |
 
-Mail templates, code storage and account transactions remain consumer-owned. Media and other candidates are tracked without placeholder packages. There is no shared online payment or identity server.
+Mail templates, code storage and account transactions remain consumer-owned. Media and other candidates are tracked without placeholder packages. There is no shared online payment or identity server. The account-policy candidate is for Node >=22 application servers, not Mira's Node 16 CloudBase functions.
 
 ## Development
 
