@@ -30,7 +30,11 @@ not been enabled as this website's login credential. `other-account` always
 returns `owner-conflict`, even if the other fields suggest an idempotent claim.
 An already bound credential returns `already-bound`. `add` refuses an occupied
 slot, while `replace` refuses an empty slot. Invalid runtime inputs throw a
-generic `TypeError` and are never interpreted as permission to write.
+generic `TypeError` and are never interpreted as permission to write. In
+particular, `unclaimed` plus `same-candidate` is inconsistent: callers must
+include ownership from the current slot when deriving `candidateOwner`.
+`other-account` still returns `owner-conflict` before idempotency or slot
+decisions, so a conflicting authoritative lookup never authorizes a write.
 
 For removal, count **usable sign-in identities** under the application's own
 rules. A password field, unverified address or profile contact is not

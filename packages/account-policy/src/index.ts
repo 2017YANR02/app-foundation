@@ -32,6 +32,9 @@ export function decideCredentialClaim(input: CredentialClaimInput): CredentialCl
   }
 
   if (input.candidateOwner === "other-account") return "owner-conflict";
+  if (input.candidateOwner === "unclaimed" && input.currentSlot === "same-candidate") {
+    throw new TypeError("Invalid credential claim input");
+  }
   if (input.currentSlot === "same-candidate") return "already-bound";
   if (input.intent === "add" && input.currentSlot === "different") return "slot-occupied";
   if (input.intent === "replace" && input.currentSlot === "empty") return "missing-current";

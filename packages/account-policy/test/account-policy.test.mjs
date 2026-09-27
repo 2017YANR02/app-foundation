@@ -29,7 +29,9 @@ test("claim permits same-account ownership in a separate system and idempotent c
 test("claim rejects invalid runtime inputs without exposing values", () => {
   for (const input of [null, {}, { intent: "merge", candidateOwner: "unclaimed", currentSlot: "empty" },
     { intent: "add", candidateOwner: "unknown", currentSlot: "empty" },
-    { intent: "add", candidateOwner: "unclaimed", currentSlot: "unknown" }]) {
+    { intent: "add", candidateOwner: "unclaimed", currentSlot: "unknown" },
+    { intent: "add", candidateOwner: "unclaimed", currentSlot: "same-candidate" },
+    { intent: "replace", candidateOwner: "unclaimed", currentSlot: "same-candidate" }]) {
     assert.throws(() => decideCredentialClaim(input), { name: "TypeError", message: "Invalid credential claim input" });
   }
 });

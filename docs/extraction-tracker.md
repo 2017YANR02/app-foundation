@@ -128,7 +128,9 @@ outside its direct runtime scope.
 
 - The claim decision prioritizes an `other-account` ownership conflict, keeps
   an already bound candidate idempotent, and requires explicit `add` versus
-  `replace` intent. Removal requires at least one usable identity after all
+  `replace` intent. An impossible `unclaimed` plus `same-candidate` state
+  raises a generic error rather than hiding a stale ownership lookup. Removal
+  requires at least one usable identity after all
   selected aliases are removed; consumers decide what counts as usable.
 - Consumers must derive authoritative inputs and recheck them within their own
   lock or transaction. The pure result is not an atomicity, one-time-use or
@@ -139,7 +141,7 @@ outside its direct runtime scope.
   `node scripts/verify-package.mjs` pass allowlisted tarballs, offline isolated
   installation and CommonJS/ESM/strict TypeScript consumption. Candidate
   account-policy tarball SHA-256:
-  `843c707598e8c2868a960ed8d4d50b6e2a17cc2bc0e169f31d6c56e2f09e0eac`.
+  `c2fe2412695586239247539ef58d8605f8320b2f95db90044a24d70ca9bfacec`.
   No provider requests, push, tag, publication or application deployment occurred.
 - Consumer adoption must wait for an immutable release asset and exact
   dependency pin. Temporary local-artifact checks are evidence for the
