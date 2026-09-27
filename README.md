@@ -10,9 +10,9 @@ Small, independently versioned building blocks for server applications. The firs
 | `@app-foundation/messaging` | Resend transport, sanitized errors, bounded requests and caller-owned idempotency | Published 0.1.0 in release v0.2.0 |
 | `@app-foundation/verification` | Scoped code digests, numeric generation, verification and cooldown rules | Published 0.1.0 in release v0.2.0 |
 | `@app-foundation/sms` | Aliyun and Tencent SMS submission behind one sender contract, sanitized errors and resend timing | Published 0.1.1 in release v0.3.1; 0.1.0 superseded before consumer adoption |
-| `@app-foundation/account-policy` | Pure credential claim and last-method removal decisions | Local 0.1.0 candidate; unpublished |
+| `@app-foundation/account-policy` | Pure credential claim and last-method removal decisions | Published 0.1.0 in release v0.4.0 |
 
-Mail templates, code storage and account transactions remain consumer-owned. Media and other candidates are tracked without placeholder packages. There is no shared online payment or identity server. The account-policy candidate is for Node >=22 application servers, not Mira's Node 16 CloudBase functions.
+Mail templates, code storage and account transactions remain consumer-owned. Media and other candidates are tracked without placeholder packages. There is no shared online payment or identity server. Account-policy is for Node >=22 application servers, not Mira's Node 16 CloudBase functions.
 
 ## Development
 
@@ -29,7 +29,7 @@ Tests generate ephemeral keys and inject HTTP/provider responses. They never use
 
 ## Distribution
 
-Payments 0.1.0 is published in repository release v0.1.0. Messaging 0.1.0 and verification 0.1.0 are published in v0.2.0; SMS 0.1.1 is published in v0.3.1. Use each immutable asset URL and its lockfile integrity; earlier artifacts have not changed.
+Payments 0.1.0 is published in repository release v0.1.0. Messaging 0.1.0 and verification 0.1.0 are published in v0.2.0; SMS 0.1.1 is published in v0.3.1; account-policy 0.1.0 is published in v0.4.0. Use each immutable asset URL and its lockfile integrity; earlier artifacts have not changed.
 
 The GitHub release `v0.1.0` supplies the npm-format package artifact and SHA-256 checksum. Install the exact release URL and commit the resulting dependency lockfile. Nothing is published to the npm registry in this release.
 
@@ -38,6 +38,7 @@ pnpm add 'https://github.com/2017YANR02/app-foundation/releases/download/v0.1.0/
 pnpm add 'https://github.com/2017YANR02/app-foundation/releases/download/v0.2.0/app-foundation-messaging-0.1.0.tgz'
 pnpm add 'https://github.com/2017YANR02/app-foundation/releases/download/v0.2.0/app-foundation-verification-0.1.0.tgz'
 pnpm add 'https://github.com/2017YANR02/app-foundation/releases/download/v0.3.1/app-foundation-sms-0.1.1.tgz'
+pnpm add 'https://github.com/2017YANR02/app-foundation/releases/download/v0.4.0/app-foundation-account-policy-0.1.0.tgz'
 ```
 
 Consumers can adopt a release independently. Do not use a relative source path, symlink, moving branch or unversioned workspace dependency across repositories. Publishing this library does not deploy any consumer application or enable a payment product.

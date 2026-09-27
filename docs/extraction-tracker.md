@@ -146,3 +146,9 @@ outside its direct runtime scope.
 - Consumer adoption must wait for an immutable release asset and exact
   dependency pin. Temporary local-artifact checks are evidence for the
   integration, not a production dependency.
+
+### v0.4.0 publication and consumer pins — 2026-09-27
+
+- The owner authorized publishing the shared package. Annotated `v0.4.0` targets source commit `2cf51fc79c70da422ee5310978475d984806ecf6`; [Node 22/24 CI](https://github.com/2017YANR02/app-foundation/actions/runs/36312882017) passed all package checks, packing and isolated consumption on that commit.
+- The [v0.4.0 release](https://github.com/2017YANR02/app-foundation/releases/tag/v0.4.0) contains only `account-policy` 0.1.0 and its checksum. Published asset SHA-256 is `c2fe2412695586239247539ef58d8605f8320b2f95db90044a24d70ca9bfacec`; prior release assets were not replaced.
+- Mira Web and CubeRoot API pin the versioned asset URL with lockfile integrity in local consumer work. Their targeted account tests and typechecks pass with the released package installed. Neither consumer was pushed or deployed by this package release; real account acceptance remains separate.
