@@ -38,5 +38,9 @@ Protocol references:
 - https://help.aliyun.com/zh/id-verification/financial-grade-id-verification/describefaceverify
 - https://help.aliyun.com/zh/id-verification/financial-grade-id-verification/error-code-person-verify
 
-Version 0.1.0 is a local candidate. Install a reviewed immutable release asset
-with an exact URL and lockfile integrity before production adoption.
+Distribution: package 0.1.0 in GitHub release v0.5.0. Consumers pin the exact
+asset URL and lockfile integrity:
+
+```sh
+pnpm add 'https://github.com/2017YANR02/app-foundation/releases/download/v0.5.0/app-foundation-face-verification-0.1.0.tgz'
+```

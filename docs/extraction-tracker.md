@@ -184,3 +184,12 @@ session, identity digest, consent or quota logic is included.
   not published, and consumers must pin a reviewed immutable release before
   production adoption. Extraction does not merge the two applications' users,
   credentials, certification scenes or databases.
+
+
+### v0.5.0 publication authorization — 2026-10-08
+
+The owner authorized publishing the new face-verification package and adopting
+it in both consumer websites, with all other agents’ WIP preserved. Source and
+consumer work use isolated worktrees. Only this package and its checksum will
+be attached to the new release; existing versions and assets will not change.
+Node 22/24 CI and release digest verification are required before consumer pins.
