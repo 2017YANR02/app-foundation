@@ -193,3 +193,11 @@ it in both consumer websites, with all other agents’ WIP preserved. Source and
 consumer work use isolated worktrees. Only this package and its checksum will
 be attached to the new release; existing versions and assets will not change.
 Node 22/24 CI and release digest verification are required before consumer pins.
+
+
+### v0.5.0 publication evidence
+
+- Source `e0a075d712fdf442be05832fa04aa3294bc6563d` passed [Node 22/24 CI 37888386933](https://github.com/2017YANR02/app-foundation/actions/runs/37888386933).
+- Annotated tag `v0.5.0` points to that reviewed source. [Release v0.5.0](https://github.com/2017YANR02/app-foundation/releases/tag/v0.5.0) contains only face-verification 0.1.0 and SHA256SUMS.
+- The released tarball SHA-256 is `0094f7c3ced22f7a3e3681a1e0d730868f708ebc9aa010fb1648672392052d43`; GitHub's asset digest and an anonymous download both match the reviewed local bytes. The candidate hash above predates the final distribution README. Previous assets and tags were not altered.
+- Both consumer adapters were verified locally (14 focused checks per consumer and typechecks), including Mira’s rejection of unknown result states. Consumer commits and production activation are recorded separately by each application. No real identity or billable provider call was used.
