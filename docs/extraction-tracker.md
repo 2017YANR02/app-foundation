@@ -152,3 +152,35 @@ outside its direct runtime scope.
 - The owner authorized publishing the shared package. Annotated `v0.4.0` targets source commit `2cf51fc79c70da422ee5310978475d984806ecf6`; [Node 22/24 CI](https://github.com/2017YANR02/app-foundation/actions/runs/36312882017) passed all package checks, packing and isolated consumption on that commit.
 - The [v0.4.0 release](https://github.com/2017YANR02/app-foundation/releases/tag/v0.4.0) contains only `account-policy` 0.1.0 and its checksum. Published asset SHA-256 is `c2fe2412695586239247539ef58d8605f8320b2f95db90044a24d70ca9bfacec`; prior release assets were not replaced.
 - Mira Web and CubeRoot API pin the versioned asset URL with lockfile integrity in local consumer work. Their targeted account tests and typechecks pass with the released package installed. Neither consumer was pushed or deployed by this package release; real account acceptance remains separate.
+
+
+## Face verification candidate — 2026-10-08
+
+The owner requested extraction after diagnosing a failed face flow followed by a
+change from desktop to phone. Application session binding rejected the new
+session; both original adapters also conflated explicit provider failure with
+an unfinished result. CubeRoot's application repair remains consumer-owned.
+
+`@app-foundation/face-verification@0.1.0` contains only the reviewed CubeRoot
+GPL-3.0 protocol implementation, generalized to explicit credentials and
+injected HTTP/time/nonce. It implements InitFaceVerify ID_PRO and
+DescribeFaceVerify with a three-state result: Code 200 + Passed T is passed,
+Passed F is failed, and Describe RPC 403/424 is pending. Responses are bounded
+and projected; errors never expose identity fields, materials or transport
+causes. No private Mira source was copied. No environment reads, database,
+session, identity digest, consent or quota logic is included.
+
+- Local Node tests include 10 new protocol cases; full `pnpm check` passes.
+- `pnpm pack:all` (including payments) and `node scripts/verify-package.mjs` pass
+  six allowlisted artifacts, isolated offline install, CJS/ESM and strict TS.
+- Candidate SHA-256: `6a8004063773ecb2fa64aa3fb72c0c877cea649cc55e94d6195deea8680d5a4c`.
+- CubeRoot's application adapter passes 14 focused route/provider checks and
+  API typecheck against the packed artifact, with existing credentials and
+  session/ownership/quota enforcement kept in the application.
+- Mira’s candidate adapter passes 13 focused provider/identity tests and its
+  Web typecheck against the same packed artifact. Explicit failure ends the
+  attempt while preserving recent-session, consent, identity and quota checks.
+- No real provider requests or identity fixtures were used. The candidate is
+  not published, and consumers must pin a reviewed immutable release before
+  production adoption. Extraction does not merge the two applications' users,
+  credentials, certification scenes or databases.

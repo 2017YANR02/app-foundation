@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const packages = ["payments", "messaging", "verification", "sms", "account-policy"];
+const packages = ["payments", "messaging", "verification", "sms", "account-policy", "face-verification"];
 const expected = await Promise.all(packages.map(async (name) => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages", name, "package.json"), "utf8"));
   return `app-foundation-${name}-${manifest.version}.tgz`;
@@ -26,6 +26,7 @@ try {
   await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "isolated-consumer", private: true, type: "module" }));
   execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--offline", ...artifacts.map(file => path.join(root, "artifacts", file))], { cwd: directory, stdio: "pipe" });
   await writeFile(path.join(directory, "consumer.cjs"), `const assert = require("node:assert/strict");
+assert.equal(typeof require("@app-foundation/face-verification").createAliyunFaceClient, "function");
 const core = require("@app-foundation/payments/core");
 assert.equal(core.decimalToMinor("10.01"), 1001);
 assert.equal(typeof require("@app-foundation/payments/wechat").createWechatPayClient, "function");
@@ -43,6 +44,8 @@ assert.equal(decimalToMinor("0.01"), 1);
 import { createResendClient } from "@app-foundation/messaging";
 import { createCodeDigest, matchesCodeDigest, evaluateVerification } from "@app-foundation/verification";
 import { createTencentSmsSender, remainingSmsRetryMs } from "@app-foundation/sms";
+import { createAliyunFaceClient } from "@app-foundation/face-verification";
+assert.deepEqual(await createAliyunFaceClient({ accessKeyId: "test", accessKeySecret: "test" }, { fetch: async () => Response.json({ Code: 200, ResultObject: { Passed: "F" } }) }).query("1000", "fixture"), { status: "failed" });
 import { decideCredentialClaim, decideCredentialRemoval } from "@app-foundation/account-policy";
 const binding = { secret: "0".repeat(32), purpose: "register", channel: "email", target: "user@example.test", challengeId: "example", code: "123456" };
 assert.ok(matchesCodeDigest(binding, createCodeDigest(binding)));
@@ -68,6 +71,9 @@ import { createResendClient, type EmailAccepted } from "@app-foundation/messagin
 import { createCodeDigest, matchesCodeDigest, evaluateVerification, remainingCooldownMs, type CodeDigestInput, type VerificationState } from "@app-foundation/verification";
 import { createAliyunSmsSender, createTencentSmsSender, type SmsCodeSender, type SmsAccepted } from "@app-foundation/sms";
 import { decideCredentialClaim, decideCredentialRemoval, type CredentialClaimDecision, type CredentialRemovalDecision } from "@app-foundation/account-policy";
+import { createAliyunFaceClient, type FaceVerificationResult } from "@app-foundation/face-verification";
+const face: Promise<FaceVerificationResult> = createAliyunFaceClient({ accessKeyId: "test", accessKeySecret: "test" }).query("1000", "fixture");
+void face;
 declare const binding: CodeDigestInput;
 declare const state: VerificationState;
 const accepted: Promise<EmailAccepted> = createResendClient({ apiKey: "test-key", from: "sender@example.test" }).send({ to: "user@example.test", subject: "Test", text: "Test" });
@@ -83,7 +89,7 @@ void claim; void removal;
 `);
   for (const name of ["consumer.cjs", "consumer.mjs"]) execFileSync(process.execPath, [name], { cwd: directory, stdio: "pipe" });
   execFileSync(process.execPath, [path.join(root, "packages/payments/node_modules/typescript/bin/tsc"), "consumer.ts", "--noEmit", "--strict", "--skipLibCheck", "--target", "ES2022", "--module", "Node16", "--moduleResolution", "Node16"], { cwd: directory, stdio: "pipe" });
-  console.log("All five tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
+  console.log("All six tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
 } finally {
   await rm(directory, { recursive: true, force: true });
 }
