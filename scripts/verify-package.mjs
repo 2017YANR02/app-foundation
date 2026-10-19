@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const packages = ["payments", "messaging", "verification", "sms", "account-policy", "face-verification"];
+const packages = ["payments", "messaging", "verification", "sms", "account-policy", "face-verification", "workspace-policy"];
 const expected = await Promise.all(packages.map(async (name) => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages", name, "package.json"), "utf8"));
   return `app-foundation-${name}-${manifest.version}.tgz`;
@@ -26,6 +26,7 @@ try {
   await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "isolated-consumer", private: true, type: "module" }));
   execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--offline", ...artifacts.map(file => path.join(root, "artifacts", file))], { cwd: directory, stdio: "pipe" });
   await writeFile(path.join(directory, "consumer.cjs"), `const assert = require("node:assert/strict");
+assert.equal(require("@app-foundation/workspace-policy").isWorkDate("2026-10-19"), true);
 assert.equal(typeof require("@app-foundation/face-verification").createAliyunFaceClient, "function");
 const core = require("@app-foundation/payments/core");
 assert.equal(core.decimalToMinor("10.01"), 1001);
@@ -37,6 +38,8 @@ assert.equal(typeof require("@app-foundation/sms").createTencentSmsSender, "func
 assert.equal(require("@app-foundation/account-policy").decideCredentialClaim({ intent: "add", candidateOwner: "unclaimed", currentSlot: "empty" }), "apply");
 `);
   await writeFile(path.join(directory, "consumer.mjs"), `import assert from "node:assert/strict";
+import { isResultUrl } from "@app-foundation/workspace-policy";
+assert.equal(isResultUrl("https://example.test/result"), true);
 import { createWechatPayClient, createAlipayClient, decimalToMinor } from "@app-foundation/payments";
 assert.equal(typeof createWechatPayClient, "function");
 assert.equal(typeof createAlipayClient, "function");
@@ -61,6 +64,9 @@ assert.equal(decideCredentialRemoval({ activeMethodCount: 1, selectedMethodCount
   await writeFile(path.join(directory, "consumer.ts"), `import { createWechatPayClient } from "@app-foundation/payments/wechat";
 import { createAlipayClient } from "@app-foundation/payments/alipay";
 import { type ExpectedPayment, assertPaymentMatches } from "@app-foundation/payments/core";
+import { reportReadScope, type WorkspaceActor } from "@app-foundation/workspace-policy";
+const actor: WorkspaceActor = { kind: "staff", id: 1, role: "member" };
+reportReadScope(actor, ["project"]);
 declare const wechatConfig: Parameters<typeof createWechatPayClient>[0];
 declare const alipayConfig: Parameters<typeof createAlipayClient>[0];
 declare const payment: ExpectedPayment;
@@ -89,7 +95,7 @@ void claim; void removal;
 `);
   for (const name of ["consumer.cjs", "consumer.mjs"]) execFileSync(process.execPath, [name], { cwd: directory, stdio: "pipe" });
   execFileSync(process.execPath, [path.join(root, "packages/payments/node_modules/typescript/bin/tsc"), "consumer.ts", "--noEmit", "--strict", "--skipLibCheck", "--target", "ES2022", "--module", "Node16", "--moduleResolution", "Node16"], { cwd: directory, stdio: "pipe" });
-  console.log("All six tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
+  console.log("All seven tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
 } finally {
   await rm(directory, { recursive: true, force: true });
 }

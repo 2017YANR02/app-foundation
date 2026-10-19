@@ -201,3 +201,34 @@ Node 22/24 CI and release digest verification are required before consumer pins.
 - Annotated tag `v0.5.0` points to that reviewed source. [Release v0.5.0](https://github.com/2017YANR02/app-foundation/releases/tag/v0.5.0) contains only face-verification 0.1.0 and SHA256SUMS.
 - The released tarball SHA-256 is `0094f7c3ced22f7a3e3681a1e0d730868f708ebc9aa010fb1648672392052d43`; GitHub's asset digest and an anonymous download both match the reviewed local bytes. The candidate hash above predates the final distribution README. Previous assets and tags were not altered.
 - Both consumer adapters were verified locally (14 focused checks per consumer and typechecks), including Mira’s rejection of unknown result states. Consumer commits and production activation are recorded separately by each application. No real identity or billable provider call was used.
+
+## Workspace policy extraction and local consumer — 2026-10-19
+
+The owner requested extraction and continued multi-project workspace development.
+`@app-foundation/workspace-policy@0.1.0` is a new neutral implementation of the
+reviewed work-record rules: actor namespaces, private drafts, submitted visibility,
+project membership, archived-project write restrictions, optimistic-version and
+immutable submission fields, calendar-date and result-link validation. Storage,
+HTTP authentication, UI, translations and application business data stay outside
+this package. This repository remains a foundation library rather than a hosted
+employee workspace. Existing package interfaces and published artifacts are intact.
+
+Mira is the first consumer and remains the single hosted workspace. Projects are
+entries inside that application, not separate employee accounts per product.
+Mira's adapter loads current membership, compiles the shared read scope into SQL
+before paging/search, and applies state checks inside its database transaction.
+Old unassigned company reports retain their original visibility. CubeRoot links to
+the central workspace instead of installing a second database or identity system.
+
+Evidence: 6 focused policy tests; full foundation `pnpm check`; seven allowlisted
+packs; isolated offline CommonJS, ESM and strict TypeScript consumption pass.
+Mira's 31 focused workspace/HTTP/upgrade tests, typecheck, focused ESLint and Drizzle
+metadata checks pass. No browser/employee acceptance or production mutation ran.
+Candidate SHA-256: `9e7ae1adc234362a12a46a618369757a9d3ed5305c6c73f4d7df562a283d48b9`.
+
+The candidate is mirrored as an exact versioned tarball under Mira's
+`vendor/app-foundation/` with checksum and lockfile integrity for reproducible local
+integration. This is a local candidate, not a published production dependency.
+Before release, publish the reviewed immutable foundation artifact and replace
+Mira's local candidate pin with that release URL. No source-path imports, symlinks,
+remote pushes, tags, package releases or consumer deployment occurred.
