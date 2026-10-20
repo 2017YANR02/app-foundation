@@ -1,0 +1,1 @@
+Derived from Mira Web navigation, with owner-authorized extraction, 2026-10-20. GPL-3.0-only. Continuous corner geometry remains in @2017yanr02/continuous-corners. No product routes, accounts or permissions are included.
