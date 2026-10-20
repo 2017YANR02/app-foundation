@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const packages = ["payments", "messaging", "verification", "sms", "account-policy", "face-verification", "workspace-policy", "workspace-ui"];
+const packages = ["payments", "messaging", "verification", "sms", "account-policy", "face-verification", "workspace-policy", "workspace-ui", "registration-ui"];
 const expected = await Promise.all(packages.map(async (name) => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages", name, "package.json"), "utf8"));
   return `app-foundation-${name}-${manifest.version}.tgz`;
@@ -17,7 +17,7 @@ if (artifacts.some(file => !available.includes(file))) throw new Error("Missing 
 for (const artifact of artifacts) {
   const filename = path.join(root, "artifacts", artifact);
   const files = execFileSync("tar", ["-tzf", filename], { encoding: "utf8" }).trim().split("\n");
-  if (files.some(file => !/^package\/(?:dist\/|src\/|package\.json$|tsconfig\.json$|README\.md$|NOTICE\.md$|LICENSE$|workspace\.css$)/u.test(file)
+  if (files.some(file => !/^package\/(?:dist\/|src\/|package\.json$|tsconfig\.json$|README\.md$|NOTICE\.md$|LICENSE$|workspace\.css$|beian-badge\.png$)/u.test(file)
     || file.split("/").some(part => part === ".." || part.startsWith(".")))) throw new Error(`Unexpected tarball contents: ${artifact}`);
   console.log(`${createHash("sha256").update(await readFile(filename)).digest("hex")}  ${artifact}`);
 }
@@ -26,6 +26,15 @@ try {
   await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "isolated-consumer", private: true, type: "module", dependencies: { react: "19.2.0" } }));
   execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--offline", ...artifacts.map(file => path.join(root, "artifacts", file))], { cwd: directory, stdio: "pipe" });
   await writeFile(path.join(directory, "consumer.cjs"), `const assert = require("node:assert/strict");
+assert.equal(typeof require("@app-foundation/registration-ui").IcpRegistration, "function");
+assert.ok(require.resolve("@app-foundation/registration-ui/beian-badge.png"));
+const { IcpRegistration, PublicSecurityRegistration } = require("@app-foundation/registration-ui");
+assert.equal(IcpRegistration({ number: "ICP fixture" }).props.href, "https://beian.miit.gov.cn/");
+const security = PublicSecurityRegistration({ number: "Security fixture", code: "123&other=456", badgeSrc: "/badge.png" });
+assert.equal(security.props.href, "https://beian.mps.gov.cn/#/query/webSearch?code=123%26other%3D456");
+assert.equal(security.props.rel, "noopener noreferrer");
+assert.equal(security.props.children[0].props.alt, "");
+assert.equal(security.props.children[1], "Security fixture");
 assert.equal(typeof require("@app-foundation/workspace-ui").WorkspaceProvider, "function");
 assert.equal(require("@app-foundation/workspace-policy").isWorkDate("2026-10-19"), true);
 assert.equal(typeof require("@app-foundation/face-verification").createAliyunFaceClient, "function");
@@ -43,6 +52,9 @@ import { WorkspaceShell } from "@app-foundation/workspace-ui";
 assert.equal(typeof WorkspaceShell, "function");
 import { isResultUrl } from "@app-foundation/workspace-policy";
 assert.equal(isResultUrl("https://example.test/result"), true);
+import { IcpRegistration, PublicSecurityRegistration } from "@app-foundation/registration-ui";
+assert.equal(typeof IcpRegistration, "function");
+assert.equal(typeof PublicSecurityRegistration, "function");
 import { createWechatPayClient, createAlipayClient, decimalToMinor } from "@app-foundation/payments";
 assert.equal(typeof createWechatPayClient, "function");
 assert.equal(typeof createAlipayClient, "function");
@@ -68,6 +80,9 @@ assert.equal(decideCredentialRemoval({ activeMethodCount: 1, selectedMethodCount
 import { createAlipayClient } from "@app-foundation/payments/alipay";
 import { type ExpectedPayment, assertPaymentMatches } from "@app-foundation/payments/core";
 import { reportReadScope, type WorkspaceActor } from "@app-foundation/workspace-policy";
+import { type PublicSecurityRegistrationProps } from "@app-foundation/registration-ui";
+const registration: PublicSecurityRegistrationProps = { number: "fixture", code: "123", badgeSrc: "/badge.png" };
+void registration;
 const actor: WorkspaceActor = { kind: "staff", id: 1, role: "member" };
 reportReadScope(actor, ["project"]);
 declare const wechatConfig: Parameters<typeof createWechatPayClient>[0];
@@ -98,7 +113,7 @@ void claim; void removal;
 `);
   for (const name of ["consumer.cjs", "consumer.mjs"]) execFileSync(process.execPath, [name], { cwd: directory, stdio: "pipe" });
   execFileSync(process.execPath, [path.join(root, "packages/payments/node_modules/typescript/bin/tsc"), "consumer.ts", "--noEmit", "--strict", "--skipLibCheck", "--target", "ES2022", "--module", "Node16", "--moduleResolution", "Node16"], { cwd: directory, stdio: "pipe" });
-  console.log("All eight tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
+  console.log("All nine tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
 } finally {
   await rm(directory, { recursive: true, force: true });
 }

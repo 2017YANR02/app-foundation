@@ -1,0 +1,47 @@
+{
+  "name": "@app-foundation/registration-ui",
+  "version": "0.1.0",
+  "description": "Shared ICP and public security registration links",
+  "license": "GPL-3.0-only",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./beian-badge.png": "./beian-badge.png"
+  },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE",
+    "NOTICE.md",
+    "README.md",
+    "tsconfig.json",
+    "beian-badge.png"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/2017YANR02/app-foundation.git",
+    "directory": "packages/registration-ui"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "pnpm build",
+    "prepack": "pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.30",
+    "typescript": "5.7.3",
+    "@types/react": "19.2.2",
+    "react": "19.2.0"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  }
+}

@@ -240,3 +240,23 @@ The owner corrected the previous central-workspace assumption: CubeRoot and Mira
 The UI candidate is 0.1.0, mirrored as a versioned local tarball in both consumers. Policy remains pinned to the existing immutable v0.6.0 release. No publication or application deployment is authorized by this extraction.
 
 Validation: both product typechecks and CubeRoot API typecheck pass. Eight tarballs pass allowlist and isolated offline CommonJS/ESM/TypeScript consumption. CubeRoot has seven focused PostgreSQL/HTTP identity tests, plus 18 route/catalog/metadata checks; both local entry pages return HTTP 200. No employee or browser acceptance is claimed. UI SHA-256: `5ecdfda61a82c6490a8e4fdfafdbcb544b5a747ba8ab8a1378532165dc5365a0`. CubeRoot production API/migration remain unreleased.
+
+## Registration UI extraction — 2026-10-20
+
+The owner explicitly requested immediate extraction of both ICP and public
+security registration entries for Mira and CubeRoot. `registration-ui` 0.1.0
+owns the two React link components, official query URL construction, safe
+new-tab attributes and the existing CubeRoot badge asset. It has no product
+numbers, layout, theme, environment reads or application imports. Each host
+passes its own full labels/code and imports the packaged badge with its bundler.
+The asset/source provenance is retained in the package NOTICE.
+
+Both consumers now install identical local tarballs with lockfile integrity;
+separate public badge copies are removed. Mira keeps separate rows and CubeRoot
+keeps its horizontal separator and visibility rule. Candidate SHA-256:
+`b491e622f3b7ebb45e69715e02b19703673ac6d7b57791209fb0921aa6e0c18a`.
+Package compile/pack, all nine artifact allowlists and offline isolated CJS/ESM/
+TypeScript consumption pass, including link encoding and decorative-image checks.
+Mira and CubeRoot client typechecks pass. No screenshot or visual acceptance ran.
+This is local extraction/integration only: no push, package publication or site
+release. Publish an immutable artifact and replace candidate pins before release.
