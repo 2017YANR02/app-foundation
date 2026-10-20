@@ -232,3 +232,11 @@ integration. This is a local candidate, not a published production dependency.
 Before release, publish the reviewed immutable foundation artifact and replace
 Mira's local candidate pin with that release URL. No source-path imports, symlinks,
 remote pushes, tags, package releases or consumer deployment occurred.
+
+## Independent workspace UI extraction — 2026-10-19
+
+The owner corrected the previous central-workspace assumption: CubeRoot and Mira are independent applications. The earlier single-host proposal above is superseded. Foundation now also provides a host-adapted React package, explicitly authorized by the owner despite the original server-only scope. `workspace-ui` extracts the existing project/report/comment/history panels, layout and login frame. API transport, routing, brand, controls, theme and translations are injected; no identities, sessions, storage, business records, URLs or credentials are shared. Mira-specific invitations, tasks, documents, finance and AI features stay in Mira. CubeRoot uses its own login and explicit employee grants in its own PostgreSQL tables.
+
+The UI candidate is 0.1.0, mirrored as a versioned local tarball in both consumers. Policy remains pinned to the existing immutable v0.6.0 release. No publication or application deployment is authorized by this extraction.
+
+Validation: both product typechecks and CubeRoot API typecheck pass. Eight tarballs pass allowlist and isolated offline CommonJS/ESM/TypeScript consumption. CubeRoot has seven focused PostgreSQL/HTTP identity tests, plus 18 route/catalog/metadata checks; both local entry pages return HTTP 200. No employee or browser acceptance is claimed. UI SHA-256: `5ecdfda61a82c6490a8e4fdfafdbcb544b5a747ba8ab8a1378532165dc5365a0`. CubeRoot production API/migration remain unreleased.

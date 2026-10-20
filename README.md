@@ -52,3 +52,7 @@ WeChat supports the ordinary-merchant API v3 public-key mode. An existing CloudB
 The initial protocol code is derived from CubeRoot revision `e35459d59`. Source attribution and modifications are recorded in [NOTICE](packages/payments/NOTICE.md). GPL-3.0 is retained in [LICENSE](LICENSE); the extraction does not relicense the source. No private application business code, customer data, credentials or database schemas are included.
 
 Work and delivery evidence: [extraction tracker](docs/extraction-tracker.md).
+
+### Independent application workspaces
+
+`@app-foundation/workspace-ui` is the owner-authorized React exception to the original server-library scope. It shares panels and layout through injected host adapters; each consumer owns authentication, employee grants, databases and deployment. See `packages/workspace-ui/README.md`. Local candidate only.

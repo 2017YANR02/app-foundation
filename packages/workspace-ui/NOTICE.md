@@ -1,0 +1,1 @@
+Workspace UI extracted from Mira internal-workspace UI at the owner's explicit request on 2026-10-19. GPL-3.0-only. Host-specific authentication, storage, financial flows, credentials and business records are excluded.
