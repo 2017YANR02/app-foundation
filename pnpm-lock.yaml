@@ -26,6 +26,28 @@ importers:
         specifier: 5.7.3
         version: 5.7.3
 
+  packages/icons:
+    dependencies:
+      react-icons:
+        specifier: 5.7.0
+        version: 5.7.0(react@19.2.0)
+    devDependencies:
+      '@types/node':
+        specifier: 22.15.30
+        version: 22.15.30
+      '@types/react':
+        specifier: 19.2.2
+        version: 19.2.2
+      lucide-react:
+        specifier: 1.43.0
+        version: 1.43.0(react@19.2.0)
+      react:
+        specifier: 19.2.0
+        version: 19.2.0
+      typescript:
+        specifier: 5.7.3
+        version: 5.7.3
+
   packages/messaging:
     devDependencies:
       '@types/node':
@@ -115,6 +137,16 @@ packages:
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
+  lucide-react@1.43.0:
+    resolution: {integrity: sha512-ubtnda1fVK5ky0PNEpOmB0wiwhpZUyJiol4K14KCm+QKvuCkfUu54Et/rIjyupJpwiJ5Hg+BLQE86/GEsS+IgQ==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  react-icons@5.7.0:
+    resolution: {integrity: sha512-LBLy340Rzqy6+/yVhZKT3B/QpP1BZaesGqasf09HPOBzRarcDIFH0WwXlXQfE7q7ipxK4MSiC5DIBWURCny6fw==}
+    peerDependencies:
+      react: '*'
+
   react@19.2.0:
     resolution: {integrity: sha512-tmbWg6W31tQLeB5cdIBOicJDJRR2KzXsV7uSK9iNfLWQ5bIZfxuPEHp7M8wiHyHnn0DD1i7w3Zmin0FtkrwoCQ==}
     engines: {node: '>=0.10.0'}
@@ -138,6 +170,14 @@ snapshots:
       csstype: 3.2.3
 
   csstype@3.2.3: {}
+
+  lucide-react@1.43.0(react@19.2.0):
+    dependencies:
+      react: 19.2.0
+
+  react-icons@5.7.0(react@19.2.0):
+    dependencies:
+      react: 19.2.0
 
   react@19.2.0: {}
 

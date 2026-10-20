@@ -58,3 +58,5 @@ Work and delivery evidence: [extraction tracker](docs/extraction-tracker.md).
 `@app-foundation/workspace-ui` is the owner-authorized React exception to the original server-library scope. It shares panels and layout through injected host adapters; each consumer owns authentication, employee grants, databases and deployment. See `packages/workspace-ui/README.md`. Local candidate only.
 
 `@app-foundation/registration-ui` shares ICP and public security registration links plus the badge asset. Labels, numbers, theme and layout stay with each host. See `packages/registration-ui/README.md`; local candidate, not yet published.
+
+`@app-foundation/icons` supplies contact brand icons and full Lucide React exports via `/lucide`; see `packages/icons/README.md`. Local candidate.

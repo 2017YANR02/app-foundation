@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const packages = ["payments", "messaging", "verification", "sms", "account-policy", "face-verification", "workspace-policy", "workspace-ui", "registration-ui"];
+const packages = ["payments", "messaging", "verification", "sms", "account-policy", "face-verification", "workspace-policy", "workspace-ui", "registration-ui", "icons"];
 const expected = await Promise.all(packages.map(async (name) => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages", name, "package.json"), "utf8"));
   return `app-foundation-${name}-${manifest.version}.tgz`;
@@ -23,8 +23,13 @@ for (const artifact of artifacts) {
 }
 const directory = await mkdtemp(path.join(tmpdir(), "foundation-consumer-"));
 try {
-  await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "isolated-consumer", private: true, type: "module", dependencies: { react: "19.2.0" } }));
-  execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--offline", ...artifacts.map(file => path.join(root, "artifacts", file))], { cwd: directory, stdio: "pipe" });
+  await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "isolated-consumer", private: true, type: "module", dependencies: { react: "19.2.0", "lucide-react": "1.43.0" } }));
+  // Pack installed upstream dependencies so the isolated check needs no registry cache.
+  const upstreamArtifacts = ["lucide-react", "react-icons"].map(name => {
+    const output = execFileSync("npm", ["pack", path.join(root, "packages/icons/node_modules", name), "--ignore-scripts", "--json", "--pack-destination", directory], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    return path.join(directory, JSON.parse(output)[0].filename);
+  });
+  execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--offline", ...upstreamArtifacts, ...artifacts.map(file => path.join(root, "artifacts", file))], { cwd: directory, stdio: "pipe" });
   await writeFile(path.join(directory, "consumer.cjs"), `const assert = require("node:assert/strict");
 assert.equal(typeof require("@app-foundation/registration-ui").IcpRegistration, "function");
 assert.ok(require.resolve("@app-foundation/registration-ui/beian-badge.png"));
@@ -38,6 +43,10 @@ assert.equal(security.props.children[1], "Security fixture");
 assert.equal(typeof require("@app-foundation/workspace-ui").WorkspaceProvider, "function");
 assert.equal(require("@app-foundation/workspace-policy").isWorkDate("2026-10-19"), true);
 assert.equal(typeof require("@app-foundation/face-verification").createAliyunFaceClient, "function");
+const icons = require("@app-foundation/icons");
+assert.equal(icons.BrandIcon({ name: "douyin" }).props.color, "#FE2C55");
+assert.equal(icons.BrandIcon({ name: "wechat", "aria-label": "WeChat" }).props["aria-hidden"], undefined);
+assert.ok(require("@app-foundation/icons/lucide").Mail);
 const core = require("@app-foundation/payments/core");
 assert.equal(core.decimalToMinor("10.01"), 1001);
 assert.equal(typeof require("@app-foundation/payments/wechat").createWechatPayClient, "function");
@@ -52,6 +61,10 @@ import { WorkspaceShell } from "@app-foundation/workspace-ui";
 assert.equal(typeof WorkspaceShell, "function");
 import { isResultUrl } from "@app-foundation/workspace-policy";
 assert.equal(isResultUrl("https://example.test/result"), true);
+import { BrandIcon } from "@app-foundation/icons";
+import { Mail } from "@app-foundation/icons/lucide";
+assert.equal(typeof BrandIcon, "function");
+assert.ok(Mail);
 import { IcpRegistration, PublicSecurityRegistration } from "@app-foundation/registration-ui";
 assert.equal(typeof IcpRegistration, "function");
 assert.equal(typeof PublicSecurityRegistration, "function");
@@ -113,7 +126,7 @@ void claim; void removal;
 `);
   for (const name of ["consumer.cjs", "consumer.mjs"]) execFileSync(process.execPath, [name], { cwd: directory, stdio: "pipe" });
   execFileSync(process.execPath, [path.join(root, "packages/payments/node_modules/typescript/bin/tsc"), "consumer.ts", "--noEmit", "--strict", "--skipLibCheck", "--target", "ES2022", "--module", "Node16", "--moduleResolution", "Node16"], { cwd: directory, stdio: "pipe" });
-  console.log("All nine tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
+  console.log("All ten tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
 } finally {
   await rm(directory, { recursive: true, force: true });
 }

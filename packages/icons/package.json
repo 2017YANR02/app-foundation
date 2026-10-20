@@ -1,0 +1,58 @@
+{
+  "name": "@app-foundation/icons",
+  "version": "0.1.0",
+  "description": "Shared brand icons and full Lucide React entry",
+  "license": "GPL-3.0-only",
+  "type": "commonjs",
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./lucide": {
+      "types": "./dist/esm/lucide.d.ts",
+      "import": "./dist/esm/lucide.js",
+      "require": "./dist/cjs/lucide.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE",
+    "NOTICE.md",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/2017YANR02/app-foundation.git",
+    "directory": "packages/icons"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --outDir dist/cjs && tsc -p tsconfig.json --module ESNext --moduleResolution Bundler --outDir dist/esm && node -e \"require('node:fs').writeFileSync('dist/esm/package.json', '{\\\"type\\\":\\\"module\\\"}\\n')\"",
+    "check": "pnpm build",
+    "prepack": "pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.30",
+    "typescript": "5.7.3",
+    "@types/react": "19.2.2",
+    "react": "19.2.0",
+    "lucide-react": "1.43.0"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "lucide-react": ">=1 <2"
+  },
+  "module": "./dist/esm/index.js",
+  "sideEffects": false,
+  "dependencies": {
+    "react-icons": "5.7.0"
+  }
+}

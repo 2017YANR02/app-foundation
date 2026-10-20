@@ -260,3 +260,20 @@ TypeScript consumption pass, including link encoding and decorative-image checks
 Mira and CubeRoot client typechecks pass. No screenshot or visual acceptance ran.
 This is local extraction/integration only: no push, package publication or site
 release. Publish an immutable artifact and replace candidate pins before release.
+
+## Shared icons — 2026-10-20
+
+Owner requested CubeRoot contact brand icons and the complete Lucide API in
+Foundation. `@app-foundation/icons` 0.1.0 exports BrandIcon with eleven named
+brand variants (nine upstream marks), original Si components and the entire
+Lucide API through `/lucide`. React Icons 5.7.0 is pinned; Lucide 1.x remains a
+host peer, preserving Mira 1.43.0 and CubeRoot 1.8.0. Separate ESM/CJS exports
+and sideEffects:false support bundler pruning. No account data was extracted.
+Both sites pin the same local tarball (SHA-256
+`d6f6ecd8c23b8b98138b66c94ffdc8e23e7c73be41abf1beec317177b5aab207`).
+Mira’s 25 and CubeRoot client’s 464 existing Lucide source references were
+mechanically switched to the shared entry. CubeRoot’s contact component moved
+concurrently into components/ContactDetails.tsx; its current version now uses
+BrandIcon, preserving the other task’s layout/QR work. Both client typechecks
+pass. All ten package artifacts pass allowlists and isolated offline CJS/ESM/TypeScript consumption, including brand color and accessible-label checks. Local extraction only, no publication or deployment; visual acceptance
+remains with the owner. Provenance and upstream licenses remain documented.
