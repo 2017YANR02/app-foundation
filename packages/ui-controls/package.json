@@ -1,0 +1,50 @@
+{
+  "name": "@app-foundation/ui-controls",
+  "version": "0.2.0",
+  "description": "Shared controlled React UI controls",
+  "license": "GPL-3.0-only",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./styles.css"
+  },
+  "files": [
+    "dist",
+    "src",
+    "styles.css",
+    "LICENSE",
+    "NOTICE.md",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/2017YANR02/app-foundation.git",
+    "directory": "packages/ui-controls"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "pnpm build",
+    "prepack": "pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.30",
+    "typescript": "5.7.3",
+    "@types/react": "19.2.2",
+    "react": "19.2.0",
+    "@types/react-dom": "19.2.2",
+    "react-dom": "19.2.0"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19"
+  }
+}

@@ -16,3 +16,7 @@ No accounts, URLs, follower counts, QR codes or page layout belong here.
 
 0.1.0 is a local candidate. Both websites consume the exact same packed artifact;
 immutable publication and site release remain separate from local extraction.
+
+0.1.1 adds GitHub, X and Zhihu marks. Use `<BrandIcon name="douyin" monochrome />` for theme-inherited `currentColor` SVGs (also supported for Xiaohongshu and all other brands). Email uses `Mail` from `/lucide`. Account links and QR images belong to consumers.
+
+0.1.2 adds `VideoChannelIcon` and `<BrandIcon name="wechat-channels" monochrome />`: owner-requested monochrome video-channel mark.

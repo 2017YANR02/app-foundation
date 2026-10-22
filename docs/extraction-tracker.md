@@ -277,3 +277,42 @@ concurrently into components/ContactDetails.tsx; its current version now uses
 BrandIcon, preserving the other task’s layout/QR work. Both client typechecks
 pass. All ten package artifacts pass allowlists and isolated offline CJS/ESM/TypeScript consumption, including brand color and accessible-label checks. Local extraction only, no publication or deployment; visual acceptance
 remains with the owner. Provenance and upstream licenses remain documented.
+
+## Shared navigation — 2026-10-20
+
+Owner authorized extraction of Mira's refined sidebar into `navigation-ui` 0.1.0, with CubeRoot limited to its internal workspace (`/workspace`), not global navigation. React/ESM package owns sidebar geometry, fixed icon position, 38px item heights, 58px collapsed width, labels/divider animation, mobile toggle/backdrop and shared continuous-corner junction. Expanded width and theme remain host tokens. Links, locale, selected routes, auth and role filtering remain host-owned. Mira removes its duplicate sidebar implementation; CubeRoot retains its existing workspace provider and data panels.
+
+Both clients' typechecks and packaged rendering/adapter/accessibility-name/geometry checks passed. Host and package CSS parsed successfully. No browser, visual or real business acceptance performed. Identical local artifact SHA-256: `de78d760138a4f9d59a2efd03526f25b14037d0e2c2621eaf6b302be22a63a30`. No commit, push, library publication or site deployment; publish an immutable artifact before deploying either consumer. Re-run `node scripts/verify-navigation-ui.mjs <mira-web-directory> <cuberoot-client-directory>` against installed consumers.
+
+### Additional consumers — 2026-10-20
+
+Local candidate 0.1.2 adds native grouped menus, host-owned badges and `contentAs="div"` for embedded navigation. Mira admin now uses the shared sidebar while retaining governance disclosure, full-document links and pending navigation; notifications retain role-dependent categories, demo-only trash and read actions. CubeRoot contact uses section anchors while preserving all details and QR actions. Existing internal workspaces use the same artifact. Group, badge and button-adapter rendering checks and CSS parsing passed; client typechecks recorded in consumer handoff. SHA-256 `1328bad13f8af6c5f743fa0c17d77cef6452452e1c2c079f2c5c0cf6727be42c`. No browser acceptance, commits, publication or deployment.
+
+### Monochrome social marks — 2026-10-20
+
+Icons 0.1.1 adds monochrome currentColor rendering and upstream GitHub, X and Zhihu marks. Douyin and Xiaohongshu reuse existing Simple Icons SVGs; email remains Lucide Mail. Mira pins the local candidate for its footer; account QR assets remain exclusively in Mira. Package compiled and packed; no publication or deployment.
+
+Icons 0.1.2 adds VideoChannelIcon / wechat-channels, drawn from the owner-provided reference, and consumed by Mira. No QR/account data in the package. Local build and artifact only; unpublished.
+
+## UI controls — 2026-10-22
+
+Extract BoolToggle and its pointer-aware switch from CubeRoot into @app-foundation/ui-controls 0.1.0 for Mira local flow viewing. Preserve GPL-3.0 and source attribution; namespace styles and expose theme variables. Mira consumes a pinned vendored tarball, never an external checkout path. No bulk consumer migration or publication in this batch.
+
+UI controls local validation: package compilation/pack and Mira typecheck passed. Artifact SHA-256: `8eac0394176ec7b1228639a4d09e1ec72c481afd324adaef46f667a2f21be8a4`. No tests run or production release performed.
+
+### Fields, hints and native dialogs — 2026-10-22
+
+UI controls 0.2.0 extracts PasswordInput from the existing Mira/CubeRoot controls,
+SearchInput and Tooltip from CubeRoot, and a controlled native Dialog from Mira's
+QR dialog lifecycle. Mira adopts the primitives in its password adapter, handbook
+search, environment-switch hint and footer QR dialogs. The original CubeRoot
+consumers are not migrated in this batch. Labels, icons, themes, route changes,
+QR assets, consent and authentication stay host-owned; no data/API/env dependency.
+IME/debounce/clear behavior remains in SearchInput; Tooltip handles focus, pointer,
+Escape and active dialog/fullscreen portals. Dialog owns native focus management,
+nested scroll locks and backdrop drag protection, never submission or navigation.
+Provenance and GPL-3.0 retained. Package compiled and packed; pinned local artifact
+SHA-256 `6b5b12f4d0d9b7448f944e0316f3cd1af83b388f41f1341468bfc21a9bf1aeb6`.
+No tests, visual acceptance, commits, push, package publication or deployment.
+Mira typecheck passed with the installed 0.2.0 tarball. Consumer diff review passed;
+visual and business acceptance remain owner-led.

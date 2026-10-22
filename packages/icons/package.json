@@ -1,6 +1,6 @@
 {
   "name": "@app-foundation/icons",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Shared brand icons and full Lucide React entry",
   "license": "GPL-3.0-only",
   "type": "commonjs",

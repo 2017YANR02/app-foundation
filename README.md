@@ -60,3 +60,7 @@ Work and delivery evidence: [extraction tracker](docs/extraction-tracker.md).
 `@app-foundation/registration-ui` shares ICP and public security registration links plus the badge asset. Labels, numbers, theme and layout stay with each host. See `packages/registration-ui/README.md`; local candidate, not yet published.
 
 `@app-foundation/icons` supplies contact brand icons and full Lucide React exports via `/lucide`; see `packages/icons/README.md`. Local candidate.
+
+### Shared navigation
+
+`@app-foundation/navigation-ui` 0.1.2 is a local ESM React package for collapsible sidebar geometry, animation, mobile navigation and continuous-corner junctions. Hosts supply routes, icons, labels and permissions. Mira workbenches and CubeRoot internal workspace consume the identical artifact; unpublished. See `packages/navigation-ui/README.md`.

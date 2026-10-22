@@ -1,4 +1,5 @@
 import { mkdtemp, writeFile, rm, readdir, readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -6,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const packages = ["payments", "messaging", "verification", "sms", "account-policy", "face-verification", "workspace-policy", "workspace-ui", "registration-ui", "icons"];
+const packages = ["payments", "messaging", "verification", "sms", "account-policy", "face-verification", "workspace-policy", "workspace-ui", "registration-ui", "icons", "navigation-ui", "ui-controls"];
 const expected = await Promise.all(packages.map(async (name) => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages", name, "package.json"), "utf8"));
   return `app-foundation-${name}-${manifest.version}.tgz`;
@@ -17,18 +18,27 @@ if (artifacts.some(file => !available.includes(file))) throw new Error("Missing 
 for (const artifact of artifacts) {
   const filename = path.join(root, "artifacts", artifact);
   const files = execFileSync("tar", ["-tzf", filename], { encoding: "utf8" }).trim().split("\n");
-  if (files.some(file => !/^package\/(?:dist\/|src\/|package\.json$|tsconfig\.json$|README\.md$|NOTICE\.md$|LICENSE$|workspace\.css$|beian-badge\.png$)/u.test(file)
+  if (files.some(file => !/^package\/(?:dist\/|src\/|package\.json$|tsconfig\.json$|README\.md$|NOTICE\.md$|LICENSE$|workspace\.css$|navigation\.css$|styles\.css$|beian-badge\.png$)/u.test(file)
     || file.split("/").some(part => part === ".." || part.startsWith(".")))) throw new Error(`Unexpected tarball contents: ${artifact}`);
   console.log(`${createHash("sha256").update(await readFile(filename)).digest("hex")}  ${artifact}`);
 }
 const directory = await mkdtemp(path.join(tmpdir(), "foundation-consumer-"));
 try {
-  await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "isolated-consumer", private: true, type: "module", dependencies: { react: "19.2.0", "lucide-react": "1.43.0" } }));
+  await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "isolated-consumer", private: true, type: "module", dependencies: { react: "19.2.0", "react-dom": "19.2.0", "lucide-react": "1.43.0" } }));
   // Pack installed upstream dependencies so the isolated check needs no registry cache.
   const upstreamArtifacts = ["lucide-react", "react-icons"].map(name => {
     const output = execFileSync("npm", ["pack", path.join(root, "packages/icons/node_modules", name), "--ignore-scripts", "--json", "--pack-destination", directory], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
     return path.join(directory, JSON.parse(output)[0].filename);
   });
+  const uiRequire = createRequire(path.join(root, "packages/ui-controls/package.json"));
+  const domRequire = createRequire(uiRequire.resolve("react-dom/package.json"));
+  for (const name of ["react", "react-dom", "scheduler"]) {
+    const resolve = name === "scheduler" ? domRequire : uiRequire;
+    const source = path.dirname(resolve.resolve(`${name}/package.json`));
+    const output = execFileSync("npm", ["pack", source, "--ignore-scripts", "--json", "--pack-destination", directory], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    upstreamArtifacts.push(path.join(directory, JSON.parse(output)[0].filename));
+  }
+  upstreamArtifacts.push(path.join(root, "vendor/continuous-corners-0.3.1.tgz"));
   execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--offline", ...upstreamArtifacts, ...artifacts.map(file => path.join(root, "artifacts", file))], { cwd: directory, stdio: "pipe" });
   await writeFile(path.join(directory, "consumer.cjs"), `const assert = require("node:assert/strict");
 assert.equal(typeof require("@app-foundation/registration-ui").IcpRegistration, "function");
@@ -47,6 +57,8 @@ const icons = require("@app-foundation/icons");
 assert.equal(icons.BrandIcon({ name: "douyin" }).props.color, "#FE2C55");
 assert.equal(icons.BrandIcon({ name: "wechat", "aria-label": "WeChat" }).props["aria-hidden"], undefined);
 assert.ok(require("@app-foundation/icons/lucide").Mail);
+assert.equal(typeof require("@app-foundation/ui-controls").Dialog, "function");
+assert.ok(require.resolve("@app-foundation/ui-controls/styles.css"));
 const core = require("@app-foundation/payments/core");
 assert.equal(core.decimalToMinor("10.01"), 1001);
 assert.equal(typeof require("@app-foundation/payments/wechat").createWechatPayClient, "function");
@@ -57,6 +69,9 @@ assert.equal(typeof require("@app-foundation/sms").createTencentSmsSender, "func
 assert.equal(require("@app-foundation/account-policy").decideCredentialClaim({ intent: "add", candidateOwner: "unclaimed", currentSlot: "empty" }), "apply");
 `);
   await writeFile(path.join(directory, "consumer.mjs"), `import assert from "node:assert/strict";
+import { NavigationShell, SidebarToggle } from "@app-foundation/navigation-ui";
+assert.equal(typeof NavigationShell, "function");
+assert.equal(typeof SidebarToggle, "function");
 import { WorkspaceShell } from "@app-foundation/workspace-ui";
 assert.equal(typeof WorkspaceShell, "function");
 import { isResultUrl } from "@app-foundation/workspace-policy";
@@ -126,7 +141,7 @@ void claim; void removal;
 `);
   for (const name of ["consumer.cjs", "consumer.mjs"]) execFileSync(process.execPath, [name], { cwd: directory, stdio: "pipe" });
   execFileSync(process.execPath, [path.join(root, "packages/payments/node_modules/typescript/bin/tsc"), "consumer.ts", "--noEmit", "--strict", "--skipLibCheck", "--target", "ES2022", "--module", "Node16", "--moduleResolution", "Node16"], { cwd: directory, stdio: "pipe" });
-  console.log("All ten tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
+  console.log("All current tarballs pass content allowlists, offline installation, CommonJS, ESM and strict TypeScript consumption. No external requests were made.");
 } finally {
   await rm(directory, { recursive: true, force: true });
 }
