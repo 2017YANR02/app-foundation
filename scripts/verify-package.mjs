@@ -1,4 +1,4 @@
-import { mkdtemp, writeFile, rm, readdir, readFile } from "node:fs/promises";
+import { mkdtemp, writeFile, rm, readdir, readFile, cp, mkdir, realpath } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
@@ -26,17 +26,26 @@ const directory = await mkdtemp(path.join(tmpdir(), "foundation-consumer-"));
 try {
   await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "isolated-consumer", private: true, type: "module", dependencies: { react: "19.2.0", "react-dom": "19.2.0", "lucide-react": "1.43.0" } }));
   // Pack installed upstream dependencies so the isolated check needs no registry cache.
-  const upstreamArtifacts = ["lucide-react", "react-icons"].map(name => {
-    const output = execFileSync("npm", ["pack", path.join(root, "packages/icons/node_modules", name), "--ignore-scripts", "--json", "--pack-destination", directory], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-    return path.join(directory, JSON.parse(output)[0].filename);
-  });
+  const packInstalled = async (source, name) => {
+    const staging = path.join(directory, `stage-${name}`);
+    await mkdir(staging);
+    await cp(await realpath(source), path.join(staging, "package"), {
+      recursive: true,
+      filter: file => path.basename(file) !== "node_modules",
+    });
+    const archive = path.join(directory, `${name}.tgz`);
+    execFileSync("tar", ["-czf", archive, "-C", staging, "package"]);
+    return archive;
+  };
+  const upstreamArtifacts = [];
+  for (const name of ["lucide-react", "react-icons"]) {
+    upstreamArtifacts.push(await packInstalled(path.join(root, "packages/icons/node_modules", name), name));
+  }
   const uiRequire = createRequire(path.join(root, "packages/ui-controls/package.json"));
   const domRequire = createRequire(uiRequire.resolve("react-dom/package.json"));
   for (const name of ["react", "react-dom", "scheduler"]) {
     const resolve = name === "scheduler" ? domRequire : uiRequire;
-    const source = path.dirname(resolve.resolve(`${name}/package.json`));
-    const output = execFileSync("npm", ["pack", source, "--ignore-scripts", "--json", "--pack-destination", directory], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-    upstreamArtifacts.push(path.join(directory, JSON.parse(output)[0].filename));
+    upstreamArtifacts.push(await packInstalled(path.dirname(resolve.resolve(`${name}/package.json`)), name));
   }
   upstreamArtifacts.push(path.join(root, "vendor/continuous-corners-0.3.1.tgz"));
   execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--offline", ...upstreamArtifacts, ...artifacts.map(file => path.join(root, "artifacts", file))], { cwd: directory, stdio: "pipe" });
