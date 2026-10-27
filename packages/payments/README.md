@@ -32,7 +32,7 @@ Supply independent configuration per merchant/client. The library never reads en
 
 | Provider | Operations |
 | --- | --- |
-| WeChat | Native, H5 (explicit gate), Mini Program JSAPI (explicit AppID/gate), query, close, refund/query, payment notification verification/decryption |
+| WeChat | Native, H5 (explicit gate), Mini Program JSAPI (explicit AppID/gate), query, close, refund/query, payment notification verification/decryption; merchant transfer creation and query (local candidate) |
 | Alipay | PC/WAP checkout URL, query, close, refund/query, payment notification verification |
 
 Wechat ordinary-merchant public-key mode and Alipay RSA2 public-key mode are supported. Service-provider/sub-merchant, platform certificate rotation, automatic bill download, refund webhooks, automatic renewal and business settlement are outside this release. Existing CloudBase orders must keep their original provider path.
@@ -45,6 +45,7 @@ Wechat ordinary-merchant public-key mode and Alipay RSA2 public-key mode are sup
 - Apply results atomically and idempotently in your own database. Duplicate notifications remain possible; browser redirects, query failures and a refund request being accepted do not establish successful settlement.
 - H5 return URL/domain and browser selection, trusted proxy/client IP extraction, HTTPS webhook routes, merchant product permissions and live acceptance remain application responsibilities.
 - No automatic retry of create/refund requests, raw provider error bodies, persistent secret cache, business order mutation or audit database is included.
+- Merchant transfers require a separately approved product, a bound AppID and an immutable, persisted business attempt. `createTransfer` returns an accepted provider response, not proof of settlement; use `queryTransfer` on the original merchant bill number and atomically apply a verified terminal result. Treat timeouts, signature failures and uncertain errors as unknown; do not automatically issue a replacement bill. User confirmation or prior authorization, transfer callbacks, reconciliation and application-specific eligibility remain the consumer's responsibility. This candidate has not been released or live-validated.
 
 ## Errors and tests
 

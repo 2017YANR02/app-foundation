@@ -1,5 +1,5 @@
 /** Derived from CubeRoot's API v3 adapter. SPDX-License-Identifier: GPL-3.0-only */
-import { createDecipheriv, createPrivateKey, createPublicKey, createSign, createVerify, randomUUID } from "node:crypto";
+import { constants, createDecipheriv, createPrivateKey, createPublicKey, createSign, createVerify, publicEncrypt, randomUUID } from "node:crypto";
 import { isIP } from "node:net";
 import { PaymentError, type ClientDependencies, normalizePem, buildWechatV3Message, buildWechatV3VerifyMessage, assertPositiveMinor, assertHttpsUrl, isRecord } from "./core.js";
 
@@ -20,6 +20,12 @@ export interface WechatSignatureHeaders { serial?: string; timestamp?: string; n
 export interface WechatOrderInput { outTradeNo: string; amountCents: number; description: string; notifyUrl: string }
 export interface WechatMiniProgramPayment { timeStamp: string; nonceStr: string; package: string; signType: "RSA"; paySign: string }
 export interface WechatRefundInput { transactionId: string; refundNo: string; amountMinor: number; totalMinor: number; reason: string }
+export type WechatTransferState = "ACCEPTED" | "PROCESSING" | "WAIT_USER_CONFIRM" | "TRANSFERING" | "SUCCESS" | "FAIL" | "CANCELING" | "CANCELLED";
+export interface WechatTransferInput {
+  appId: string; outBillNo: string; openId: string; amountMinor: number; sceneId: string; remark: string;
+  sceneInfo: { type: string; content: string }[]; recipientName?: string; notifyUrl?: string;
+}
+export interface WechatTransferExpected { appId: string; outBillNo: string; openId: string; amountMinor: number }
 
 const invalid = (message: string): never => { throw new PaymentError("INVALID_RESPONSE", message); };
 function inputText(value: unknown, label: string, max: number): string {
@@ -167,9 +173,60 @@ export function createWechatPayClient(config: WechatPayConfig, dependencies: Cli
     if (expected && (record.transaction_id !== expected.transactionId || total !== expected.totalMinor || refund !== expected.amountMinor)) throw new PaymentError("IDENTITY_MISMATCH", "WeChat refund request mismatch");
     return record;
   }
+  const transferStates: readonly string[] = ["ACCEPTED", "PROCESSING", "WAIT_USER_CONFIRM", "TRANSFERING", "SUCCESS", "FAIL", "CANCELING", "CANCELLED"];
+  function transferExpected(expected: WechatTransferExpected) {
+    if (!isPaymentAppId(expected.appId) || !/^[a-zA-Z0-9]{1,32}$/.test(expected.outBillNo)
+      || !/^[a-zA-Z0-9_-]{1,64}$/.test(expected.openId)) throw new PaymentError("INVALID_INPUT", "Invalid transfer identity");
+    assertPositiveMinor(expected.amountMinor);
+  }
+  function transferResult(record: Record<string, unknown>, expected: WechatTransferExpected, query: boolean) {
+    if (record.out_bill_no !== expected.outBillNo || (query && (record.mch_id !== c.merchantId
+      || record.appid !== expected.appId || record.transfer_amount !== expected.amountMinor
+      || (record.openid !== undefined && record.openid !== expected.openId)))) {
+      throw new PaymentError("IDENTITY_MISMATCH", "Transfer does not match the expected attempt");
+    }
+    const state = String(record.state);
+    if (!transferStates.includes(state)) return invalid("Invalid WeChat transfer state");
+    const transferBillNo = responseText(record.transfer_bill_no, "transfer number");
+    const packageInfo = record.package_info;
+    if (packageInfo !== undefined && (typeof packageInfo !== "string" || !packageInfo || packageInfo.length > 1024)) return invalid("Invalid transfer package");
+    return { outBillNo: expected.outBillNo, transferBillNo, state: state as WechatTransferState,
+      packageInfo: typeof packageInfo === "string" ? packageInfo : null };
+  }
   return {
     isPaymentAppId,
     verifySignature,
+    /** Create is never retried automatically; persist the immutable attempt before calling. */
+    async createTransfer(input: WechatTransferInput) {
+      const expected = { appId: input.appId, outBillNo: input.outBillNo, openId: input.openId, amountMinor: input.amountMinor };
+      transferExpected(expected);
+      if (!/^\d{4}$/.test(input.sceneId) || !Array.isArray(input.sceneInfo) || !input.sceneInfo.length || input.sceneInfo.length > 10) throw new PaymentError("INVALID_INPUT", "Invalid transfer scene");
+      const remark = inputText(input.remark, "transfer remark", 128);
+      if ([...remark].length > 32) throw new PaymentError("INVALID_INPUT", "Invalid transfer remark");
+      const sceneInfo = input.sceneInfo.map(item => {
+        const type = inputText(item?.type, "scene information type", 60), content = inputText(item?.content, "scene information content", 128);
+        if ([...type].length > 15 || [...content].length > 32) throw new PaymentError("INVALID_INPUT", "Invalid transfer scene information");
+        return { info_type: type, info_content: content };
+      });
+      if (input.amountMinor >= 200000 && !input.recipientName) throw new PaymentError("INVALID_INPUT", "Transfer requires recipient name");
+      if (input.amountMinor < 30 && input.recipientName) throw new PaymentError("INVALID_INPUT", "Recipient name verification unavailable for this amount");
+      const userName = input.recipientName ? publicEncrypt({ key: publicKey, padding: constants.RSA_PKCS1_OAEP_PADDING, oaepHash: "sha1" }, Buffer.from(inputText(input.recipientName, "recipient name", 128))).toString("base64") : undefined;
+      if (input.notifyUrl) assertHttpsUrl(input.notifyUrl);
+      const { status, json } = await request("POST", "/v3/fund-app/mch-transfer/transfer-bills", {
+        appid: input.appId, out_bill_no: input.outBillNo, openid: input.openId, transfer_amount: input.amountMinor,
+        transfer_scene_id: input.sceneId, transfer_remark: remark, transfer_scene_report_infos: sceneInfo,
+        ...(userName ? { user_name: userName } : {}), ...(input.notifyUrl ? { notify_url: input.notifyUrl } : {}),
+      });
+      expectStatus(status, 200);
+      return transferResult(json, expected, false);
+    },
+    /** Only an authenticated query of the original attempt can establish its final state. */
+    async queryTransfer(expected: WechatTransferExpected) {
+      transferExpected(expected);
+      const { status, json } = await request("GET", `/v3/fund-app/mch-transfer/transfer-bills/out-bill-no/${expected.outBillNo}`);
+      expectStatus(status, 200);
+      return transferResult(json, expected, true);
+    },
     async createNative(input: WechatOrderInput): Promise<string> {
       const { status, json } = await request("POST", "/v3/pay/transactions/native", orderBody(input)); expectStatus(status, 200);
       if (typeof json.code_url !== "string" || json.code_url.length > 2048 || !/^weixin:\/\/wxpay\/bizpayurl\?[^\s]+$/.test(json.code_url)) return invalid("Invalid WeChat Native payment URL");
