@@ -18,7 +18,7 @@ if (artifacts.some(file => !available.includes(file))) throw new Error("Missing 
 for (const artifact of artifacts) {
   const filename = path.join(root, "artifacts", artifact);
   const files = execFileSync("tar", ["-tzf", filename], { encoding: "utf8" }).trim().split("\n");
-  if (files.some(file => !/^package\/(?:dist\/|src\/|package\.json$|tsconfig\.json$|README\.md$|NOTICE\.md$|LICENSE$|workspace\.css$|navigation\.css$|styles\.css$|beian-badge\.png$)/u.test(file)
+  if (files.some(file => !/^package\/(?:dist\/|src\/|package\.json$|tsconfig\.json$|README\.md$|NOTICE\.md$|LICENSE$|workspace\.css$|navigation\.css$|resize-divider\.css$|styles\.css$|beian-badge\.png$)/u.test(file)
     || file.split("/").some(part => part === ".." || part.startsWith(".")))) throw new Error(`Unexpected tarball contents: ${artifact}`);
   console.log(`${createHash("sha256").update(await readFile(filename)).digest("hex")}  ${artifact}`);
 }
