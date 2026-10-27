@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const packages = ["payments", "messaging", "verification", "sms", "account-policy", "face-verification", "workspace-policy", "workspace-ui", "registration-ui", "icons", "navigation-ui", "ui-controls"];
+const packages = ["payments", "messaging", "verification", "sms", "account-policy", "face-verification", "workspace-policy", "workspace-ui", "registration-ui", "icons", "navigation-ui", "ui-controls", "careers-ui"];
 const expected = await Promise.all(packages.map(async (name) => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages", name, "package.json"), "utf8"));
   return `app-foundation-${name}-${manifest.version}.tgz`;
@@ -79,6 +79,9 @@ assert.equal(require("@app-foundation/account-policy").decideCredentialClaim({ i
 `);
   await writeFile(path.join(directory, "consumer.mjs"), `import assert from "node:assert/strict";
 import { NavigationShell, SidebarToggle } from "@app-foundation/navigation-ui";
+import { CareersBrowser, CareerDetail } from "@app-foundation/careers-ui";
+assert.equal(typeof CareersBrowser, "function");
+assert.equal(typeof CareerDetail, "function");
 assert.equal(typeof NavigationShell, "function");
 assert.equal(typeof SidebarToggle, "function");
 import { WorkspaceShell } from "@app-foundation/workspace-ui";

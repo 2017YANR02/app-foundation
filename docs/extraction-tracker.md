@@ -316,3 +316,104 @@ SHA-256 `6b5b12f4d0d9b7448f944e0316f3cd1af83b388f41f1341468bfc21a9bf1aeb6`.
 No tests, visual acceptance, commits, push, package publication or deployment.
 Mira typecheck passed with the installed 0.2.0 tarball. Consumer diff review passed;
 visual and business acceptance remain owner-led.
+
+### Adjacent settings panel — 2026-10-25
+
+Navigation UI local candidate 0.2.1 adds opt-in `collapseTarget="panel"`,
+`panelVisible`, and `af-nav-panel` so hosts can keep the full navigation visible
+while the adjacent settings panel and content offset animate. The default sidebar
+collapse contract is unchanged. Shared active-row styling supports custom button
+adapters, and `--af-nav-font-size` allows host typography without duplicate styles.
+CubeRoot's desktop pet toolbar consumes this candidate and removes its local
+selected/collapse/animation overrides. Its theme, content and mobile layout remain
+host-owned. Mira remains the visual reference and is not upgraded in this batch.
+
+Package build/pack, installed artifact rendering/adapter/CSS checks, CubeRoot
+client typecheck, and browser expand/collapse checks passed. Browser verification
+confirmed the shared corner, selected treatment and transitions, with all seven
+navigation labels visible after collapsing the panel. Artifact SHA-256:
+`320836dcb271ad33945ca403f80cf30a2e9f961fc182674924224a827484cd93`.
+Local changes only; no commits, publication or deployment.
+
+Candidate 0.2.2 adds opt-in `iconOnly` independently of the adjacent panel toggle.
+CubeRoot's pet toolbar uses the shared 58px compact rail with native hover names;
+mobile retains text labels. Installed artifact checks and browser layout inspection
+passed (all seven labels hidden on desktop, all seven hover titles present).
+SHA-256: `005c04a6bf63f32bcd15f01d69ad4c2e36480e6cd6e85db2e6c6b66f9f533d6f`.
+Local only, not published or deployed.
+
+Candidate 0.2.3 repairs the empty-panel toggle: `onPanelOpen` lets the host mount
+its default panel, and the toggle's expanded state reflects absent panels.
+CubeRoot opens Appearance when no panel is active. Browser verification covered
+fresh overlay (zero panels), first toggle opening Appearance, collapse hiding it,
+and another toggle restoring it while the 58px icon rail remains visible. Client
+typecheck and packaged navigation checks passed. Local artifact SHA-256:
+`08d58dc6d254222ad1f6f0f946e913a69049258d5bc27676ec63bbd155a21145`.
+No publication or deployment.
+
+Candidate 0.2.4 removes the mount-time adjacent-panel reveal animation. Panel
+switching now keeps the column open; explicit collapsed-state transitions remain.
+CubeRoot also excludes its navigation sidebar from Appearance's outside-mousedown
+dismissal, avoiding an empty selection before the next navigation click. Browser
+checks covered Appearance → Pet → Music → Feedback → Donate → Appearance: each
+kept the 400px panel/content offset, unclipped visible content and no entry
+animation. Client typecheck and installed package checks passed. Local artifact
+SHA-256: `c7b9e6bd3aaaac70416d0f158b45083f6cc28e4100bdd7e7bd2ce182c5304cd5`.
+No commits, publication or deployment.
+
+Candidate 0.2.5 adds optional `togglePlacement="header"` and supplies the existing
+desktop toggle as the second header-render argument. CubeRoot uses a full-width
+48px top toolbar with the icon rail and settings column below it. The package
+still owns toggle state, responsive visibility, corner geometry and transitions.
+The host also sets its existing hover-background token to transparent so only the
+active item has a filled rounded background. Installed package rendering checks
+cover a single desktop toggle in the header; client typecheck passed. Browser
+inspection confirmed one active item, one desktop toggle and both columns starting
+at y=48. Artifact SHA-256:
+`a2c3e7a7aeeef0fb0a1cde6397946da0ca297b4009b17639c69d6827b04e181f`.
+Local only; not committed, published or deployed.
+
+Candidate 0.2.6 adds an optional `--af-nav-outline` hairline to the existing
+continuous corner using the same shared geometry. CubeRoot joins this with thin
+panel edges and enables it only while the settings column is expanded. Browser
+inspection confirmed the curved outline without a line across the toolbar.
+Package build and installed rendering/geometry/CSS checks passed. Artifact SHA-256:
+`070231a57c58d98c5c192beb4b9872c39cc0dfb393b98054ae417f669f192935`.
+Local only, not published or deployed.
+
+Candidate 0.2.7 adds opt-in `mobileLayout="rail"`; the default mobile drawer is
+unchanged. CubeRoot now reuses its header, compact navigation and adjacent panel
+on phones instead of a separate two-column menu and dialogs. Shared panel width
+fits the remaining viewport; mobile content is covered instead of pushed offscreen.
+Installed rendering checks cover opt-in rail and default drawer contracts. Package
+build and client typecheck passed. Browser viewport checks at 320px and 390px
+covered Appearance, Pet, Music, Feedback, Donate, explicit collapse/reopen and
+close; blank clicks leave the workspace open, the rail remains, and panels have
+no horizontal overflow. Desktop returns to the 400px panel with direct switching.
+This is responsive browser verification, not an iPhone Safari device acceptance.
+Artifact SHA-256: `7e3a5a3f3c0cd56dc5bab4489cd61d0eff91995283ec72ef8a6743ef3f44f579`.
+Local only; not committed, published or deployed.
+
+Candidate 0.2.8 extracts CubeRoot Timer's pointer-capture and keyboard divider
+into `ResizeDivider`, exported from `navigation-ui/resize-divider` with a separate
+CSS entry. Hosts supply their layout measurement and bounds; no app selectors or
+business state enter the package. CubeRoot Timer retains its two dock adapters,
+and the assistant workspace uses the same component for its rail and panel edges.
+Package build, installed-package verification, client and timer-ui typechecks
+passed. Browser pointer checks covered both Timer directions (left 397→447px,
+right 360→400px), independent assistant columns (rail 58→88px, panel 400→440px),
+release cleanup, panel switching without width reset, and the assistant maximum
+width preserving 320px of chat content. Artifact SHA-256:
+`eefd6b1603d9f3a1834b4e2664cee566cdafb76bf01de294b0013ddbf1b654e0`.
+Local only; not committed, published or deployed.
+
+Candidate 0.2.9 permits compatible continuous-corners patches (`^0.3.1`).
+CubeRoot installs 0.3.2, which fixes stale navigation highlights by observing
+selection attributes in the existing shared painter. Navigation geometry, styles
+and selection ownership are unchanged. Local artifact SHA-256:
+`c8b58413284c188b119457edc6bc8c69c1adeeae985c8b7778eb5b912ee358ae`.
+Package build and CubeRoot frozen installation passed. No publication/deployment.
+
+## Careers UI extraction — 2026-10-26
+
+Owner requested extracting the shared careers browser and detail presentation. `@app-foundation/careers-ui` 0.1.0 contains filtering, reset and section rendering; both hosts supply their own positions, localized labels, routing and styles. Mira and CubeRoot use identical local vendored artifacts; no recruitment data or product endpoints are included. Candidate SHA-256: `70fed1b2bd84ccfb4043bb1047528b0f925f65e6422cddde8ae39fb99e023dbd`. This is local integration only; package publication and site deployment remain separate.

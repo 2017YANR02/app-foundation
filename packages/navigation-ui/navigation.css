@@ -5,12 +5,13 @@
 .af-nav-sidebar { box-sizing: border-box; position: sticky; top: var(--af-nav-header-height); height: calc(100dvh - var(--af-nav-header-height)); min-width: 0; padding: 8px 10px; background: var(--af-nav-sidebar-bg); overflow-x: hidden; overflow-y: auto; }
 .af-nav-menu { display: grid; gap: 2px; grid-template-columns: minmax(0, 1fr); }
 .af-nav-row { min-width: 0; }
-.af-nav-link { display: flex; align-items: center; gap: 8px; box-sizing: border-box; min-width: 0; height: 38px; margin-block: 3px; padding: 0 10px; border-radius: 8px; font-size: 12.2px; line-height: 1.7; text-decoration: none; color: var(--af-nav-text); white-space: nowrap; transition: gap 240ms ease; }
+.af-nav-link { width: 100%; display: flex; align-items: center; gap: 8px; box-sizing: border-box; min-width: 0; height: 38px; margin-block: 3px; padding: 0 10px; border-radius: 8px; font-size: var(--af-nav-font-size, 12.2px); line-height: 1.7; text-decoration: none; color: var(--af-nav-text); white-space: nowrap; transition: gap 240ms ease; }
+button.af-nav-link { border: 0; background: transparent; font-family: inherit; text-align: left; cursor: pointer; }
 .af-nav-icon { display: grid; place-items: center; width: 18px; height: 18px; flex: 0 0 18px; }
 .af-nav-icon svg { width: 18px; height: 18px; }
 .af-nav-label { display: inline-block; min-width: 0; max-width: 24em; overflow: hidden; opacity: 1; transform: translateX(0); transition: max-width 240ms ease, opacity 180ms ease, transform 240ms ease; }
 .af-nav-link:hover, .af-nav-toggle:hover, .af-nav-mobile-toggle:hover { background: var(--af-nav-hover); }
-.af-nav-link[aria-current="page"] { color: var(--af-nav-active); background: var(--af-nav-selected); font-weight: 600; }
+.af-nav-link[aria-current="page"], .af-nav-row[data-active="true"] .af-nav-link { color: var(--af-nav-active); background: var(--af-nav-selected); font-weight: 600; }
 .af-nav-link:focus-visible, .af-nav-toggle:focus-visible, .af-nav-mobile-toggle:focus-visible { outline: 2px solid var(--af-nav-active); outline-offset: 2px; }
 .af-nav-toggle { display: grid; place-items: center; width: 38px; height: 34px; padding: 0; margin: 0 0 4px; border: 0; border-radius: 8px; background: transparent; color: var(--af-nav-text); cursor: pointer; }
 .af-nav-divider { transform-origin: 9px 12px; transform: translateX(0) scaleY(1); transition: transform 240ms ease; }
@@ -21,15 +22,15 @@
 .af-nav-main { position: relative; z-index: 0; min-width: 0; }
 .af-nav-mobile-toggle, .af-nav-backdrop { display: none; }
 @media (max-width: 767px) {
-  .af-navigation { --af-nav-header-height: 56px; }
-  .af-nav-body { display: block; }
-  .af-nav-corner, .af-nav-toggle { display: none; }
-  .af-nav-mobile-toggle { display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 8px; color: var(--af-nav-text); background: transparent; }
-  .af-nav-sidebar { display: none; position: fixed; top: var(--af-nav-header-height); bottom: 0; left: 0; width: var(--af-nav-expanded); z-index: 44; }
-  .af-navigation[data-mobile-open="true"] .af-nav-sidebar { display: block; }
-  .af-navigation[data-collapsed="true"] .af-nav-link { gap: 8px; }
-  .af-navigation[data-collapsed="true"] .af-nav-label { max-width: 24em; opacity: 1; transform: none; pointer-events: auto; }
-  .af-nav-backdrop { display: block; position: fixed; inset: var(--af-nav-header-height) 0 0; z-index: 43; border: 0; background: #0006; }
+  .af-navigation:not([data-mobile-layout="rail"]) { --af-nav-header-height: 56px; }
+  .af-navigation:not([data-mobile-layout="rail"]) .af-nav-body { display: block; }
+  .af-navigation:not([data-mobile-layout="rail"]) .af-nav-corner, .af-navigation:not([data-mobile-layout="rail"]) .af-nav-toggle { display: none; }
+  .af-navigation:not([data-mobile-layout="rail"]) .af-nav-mobile-toggle { display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 8px; color: var(--af-nav-text); background: transparent; }
+  .af-navigation:not([data-mobile-layout="rail"]) .af-nav-sidebar { display: none; position: fixed; top: var(--af-nav-header-height); bottom: 0; left: 0; width: var(--af-nav-expanded); z-index: 44; }
+  .af-navigation:not([data-mobile-layout="rail"])[data-mobile-open="true"] .af-nav-sidebar { display: block; }
+  .af-navigation:not([data-mobile-layout="rail"])[data-collapsed="true"] .af-nav-link { gap: 8px; }
+  .af-navigation:not([data-mobile-layout="rail"])[data-collapsed="true"] .af-nav-label { max-width: 24em; opacity: 1; transform: none; pointer-events: auto; }
+  .af-navigation:not([data-mobile-layout="rail"]) .af-nav-backdrop { display: block; position: fixed; inset: var(--af-nav-header-height) 0 0; z-index: 43; border: 0; background: #0006; }
 }
 @media (prefers-reduced-motion: reduce) { .af-nav-body, .af-nav-link, .af-nav-label, .af-nav-divider, .af-nav-corner { transition: none; } }
 
@@ -39,4 +40,27 @@
 
 .af-nav-badge { margin-left: auto; font-size: 11px; font-variant-numeric: tabular-nums; }
 .af-navigation[data-collapsed="true"] .af-nav-badge { display: none; }
-@media (max-width: 767px) { .af-navigation[data-collapsed="true"] .af-nav-badge { display: inline; } }
+@media (max-width: 767px) { .af-navigation:not([data-mobile-layout="rail"])[data-collapsed="true"] .af-nav-badge { display: inline; } }
+
+/* Optional adjacent panel: preserve the complete navigation and animate only
+   explicit collapse changes. Replacing panel contents must not replay entry. */
+.af-navigation { --af-nav-panel-width: 400px; }
+.af-navigation[data-navigation] .af-nav-panel {
+  position: fixed; z-index: 0; top: var(--af-nav-header-height); bottom: 0; left: var(--af-nav-width);
+  width: min(var(--af-nav-panel-width), calc(100vw - var(--af-nav-width)));
+  box-sizing: border-box; overflow-y: auto; overscroll-behavior: contain;
+  clip-path: inset(0); opacity: 1; visibility: visible;
+  transition: clip-path 240ms ease, opacity 180ms ease, visibility 0s;
+}
+.af-navigation[data-panel-collapsed="true"] .af-nav-panel {
+  clip-path: inset(0 100% 0 0); opacity: 0; visibility: hidden; pointer-events: none;
+  transition: clip-path 240ms ease, opacity 180ms ease, visibility 0s 240ms;
+}
+@media (min-width: 768px) {
+.af-navigation[data-panel-visible="true"] > .af-nav-body > .af-nav-main { margin-left: min(var(--af-nav-panel-width), calc(100vw - var(--af-nav-width))); }
+.af-navigation[data-panel-collapsed="true"] > .af-nav-body > .af-nav-main { margin-left: 0; }
+.af-nav-main { transition: margin-left 240ms ease; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .af-nav-main, .af-nav-panel, .af-navigation[data-panel-collapsed="true"] .af-nav-panel { transition: none; animation: none; }
+}

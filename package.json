@@ -13,7 +13,7 @@
     "pack:verification": "pnpm --filter @app-foundation/verification pack --pack-destination artifacts",
     "pack:sms": "pnpm --filter @app-foundation/sms pack --pack-destination artifacts",
     "pack:account-policy": "pnpm --filter @app-foundation/account-policy pack --pack-destination artifacts",
-    "pack:all": "pnpm pack:payments && pnpm pack:messaging && pnpm pack:verification && pnpm pack:sms && pnpm pack:account-policy && pnpm pack:face-verification && pnpm pack:workspace-policy && pnpm pack:workspace-ui && pnpm pack:registration-ui && pnpm pack:icons && pnpm pack:navigation-ui && pnpm pack:ui-controls",
+    "pack:all": "pnpm pack:payments && pnpm pack:messaging && pnpm pack:verification && pnpm pack:sms && pnpm pack:account-policy && pnpm pack:face-verification && pnpm pack:workspace-policy && pnpm pack:workspace-ui && pnpm pack:registration-ui && pnpm pack:icons && pnpm pack:navigation-ui && pnpm pack:ui-controls && pnpm pack:careers-ui",
     "pack:face-verification": "pnpm --filter @app-foundation/face-verification pack --pack-destination artifacts",
     "pack:workspace-policy": "pnpm --filter @app-foundation/workspace-policy pack --pack-destination artifacts",
     "pack:workspace-ui": "pnpm --filter @app-foundation/workspace-ui pack --pack-destination artifacts",
@@ -21,6 +21,7 @@
     "pack:icons": "pnpm --filter @app-foundation/icons pack --pack-destination artifacts",
     "pack:navigation-ui": "pnpm --filter @app-foundation/navigation-ui pack --pack-destination artifacts",
     "verify:navigation-ui": "node scripts/verify-navigation-ui.mjs",
-    "pack:ui-controls": "pnpm --filter @app-foundation/ui-controls pack --pack-destination artifacts"
+    "pack:ui-controls": "pnpm --filter @app-foundation/ui-controls pack --pack-destination artifacts",
+    "pack:careers-ui": "pnpm --filter @app-foundation/careers-ui pack --pack-destination artifacts"
   }
 }

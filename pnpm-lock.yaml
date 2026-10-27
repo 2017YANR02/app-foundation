@@ -17,6 +17,18 @@ importers:
         specifier: 5.7.3
         version: 5.7.3
 
+  packages/careers-ui:
+    devDependencies:
+      '@types/react':
+        specifier: 19.2.2
+        version: 19.2.2
+      react:
+        specifier: 19.2.0
+        version: 19.2.0
+      typescript:
+        specifier: 5.7.3
+        version: 5.7.3
+
   packages/face-verification:
     devDependencies:
       '@types/node':
