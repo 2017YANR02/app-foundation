@@ -47,3 +47,13 @@ Package build/pack and both consumer installations completed locally. Consumer c
 - [Scene information](https://pay.wechatpay.cn/doc/v3/merchant/4013774590)
 
 Reviewed official contracts informed the implementation; merchant-specific quotas and readiness must be verified against each real account before activation.
+
+## Authorized rollout update, 2026-10-27
+
+The owner subsequently authorized committing/pushing all contributors' changes in all three repositories, consumer production configuration/migrations/deployments, and both Mini Program development uploads. Foundation final 9fb4c06 passed Check40466615941 on Node22/24. The initial stylesheet archive check was repaired to permit the explicitly exported resize-divider stylesheet; no checks were disabled.
+
+Mira feature9512cb69 passed CI40467510247 and production health; adminApi/wallet were uploaded from the maintainer Mac with bundled dependencies and independently read back by CI. CubeRoot Webd3a5d2f4d9 and API8390f658fc were deployed, migration0296 and its guards verified. Both consumers configured their own payout identities and a conservative10–20000fen service range, with original unrelated secrets preserved. Both production servers obtained a signed NOT_FOUND result for a random nonexistent original transfer; no transfer was created.
+
+Mira2.1.22 and CubeRoot0.1.0 obtained official development upload acknowledgements and package-size receipts. The first Mira upload was explicitly rejected because the logged-in WeChat account lacked developer permission; its misleading zero-exit receipt was corrected, the uploader now requires explicit success plus a package receipt, and the owner switched to an already authorized account before a fresh successful build upload. No Mini Program review/public release or real-device/funds acceptance was performed.
+
+Merchant-console readiness remains incomplete: the owner could not confirm safety IP/funding, and browser site-safety policy blocks observing or operating that console. The owner must confirm/configure the production egress IP47.97.30.181 and operating funds in both merchants. The protocol library and deployments do not substitute for that external setup or real payout evidence. Current consumer trackers retain that blocker rather than claiming complete live money movement.
