@@ -188,14 +188,53 @@ export function createWechatPayClient(config: WechatPayConfig, dependencies: Cli
     const state = String(record.state);
     if (!transferStates.includes(state)) return invalid("Invalid WeChat transfer state");
     const transferBillNo = responseText(record.transfer_bill_no, "transfer number");
+    if (!/^[A-Za-z0-9]{1,64}$/.test(transferBillNo)) return invalid("Invalid transfer number");
     const packageInfo = record.package_info;
     if (packageInfo !== undefined && (typeof packageInfo !== "string" || !packageInfo || packageInfo.length > 1024)) return invalid("Invalid transfer package");
     return { outBillNo: expected.outBillNo, transferBillNo, state: state as WechatTransferState,
       packageInfo: typeof packageInfo === "string" ? packageInfo : null };
   }
+  function decryptNotification(rawBody: string, headers: WechatSignatureHeaders, eventType: string, originalType: string): Record<string, unknown> {
+    if (!verifySignature(headers, rawBody)) throw new PaymentError("SIGNATURE_INVALID", "WeChat notification signature verification failed");
+    let envelope: unknown;
+    try { envelope = JSON.parse(rawBody); } catch { return invalid("Invalid WeChat notification JSON"); }
+    if (!isRecord(envelope) || envelope.event_type !== eventType || envelope.resource_type !== "encrypt-resource" || !isRecord(envelope.resource)) return invalid("Unsupported WeChat notification");
+    const resource = envelope.resource;
+    if (resource.algorithm !== "AEAD_AES_256_GCM" || resource.original_type !== originalType || typeof resource.nonce !== "string" || Buffer.byteLength(resource.nonce) !== 12 || typeof resource.ciphertext !== "string" || !/^[A-Za-z0-9+/]+={0,2}$/.test(resource.ciphertext) || (resource.associated_data !== undefined && typeof resource.associated_data !== "string")) return invalid("Invalid WeChat encrypted resource");
+    let decrypted: unknown;
+    try {
+      const ciphertext = Buffer.from(resource.ciphertext, "base64");
+      if (ciphertext.length <= 16) throw new Error();
+      const decipher = createDecipheriv("aes-256-gcm", Buffer.from(c.apiV3Key, "utf8"), Buffer.from(resource.nonce));
+      decipher.setAuthTag(ciphertext.subarray(-16)); decipher.setAAD(Buffer.from(resource.associated_data as string ?? ""));
+      decrypted = JSON.parse(Buffer.concat([decipher.update(ciphertext.subarray(0, -16)), decipher.final()]).toString("utf8"));
+    } catch { return invalid("WeChat notification decryption failed"); }
+    if (!isRecord(decrypted)) return invalid("Invalid WeChat notification transaction");
+    return decrypted;
+  }
+  async function findTransfer(expected: WechatTransferExpected) {
+    transferExpected(expected);
+    const { status, json } = await request("GET", `/v3/fund-app/mch-transfer/transfer-bills/out-bill-no/${expected.outBillNo}`);
+    // This absence is authenticated by request(); never infer absence from a timeout.
+    if (status === 404 && json.code === "NOT_FOUND") return null;
+    expectStatus(status, 200);
+    return transferResult(json, expected, true);
+  }
   return {
+    findTransfer,
     isPaymentAppId,
     verifySignature,
+    /** Authenticate before using the bill number to load a consumer's immutable attempt. */
+    parseTransferNotification(rawBody: string, headers: WechatSignatureHeaders) {
+      const record = decryptNotification(rawBody, headers, "MCHTRANSFER.BILL.FINISHED", "mch_payment");
+      if (record.mch_id !== c.merchantId || !isPaymentAppId(record.appid)
+        || !["SUCCESS", "FAIL", "CANCELLED"].includes(String(record.state))
+        || typeof record.out_bill_no !== "string" || !/^[a-zA-Z0-9]{1,32}$/.test(record.out_bill_no)) {
+        return invalid("Invalid transfer notification identity or state");
+      }
+      // Consumer must query the original attempt before changing its balance.
+      return { outBillNo: record.out_bill_no };
+    },
     /** Create is never retried automatically; persist the immutable attempt before calling. */
     async createTransfer(input: WechatTransferInput) {
       const expected = { appId: input.appId, outBillNo: input.outBillNo, openId: input.openId, amountMinor: input.amountMinor };
@@ -222,10 +261,9 @@ export function createWechatPayClient(config: WechatPayConfig, dependencies: Cli
     },
     /** Only an authenticated query of the original attempt can establish its final state. */
     async queryTransfer(expected: WechatTransferExpected) {
-      transferExpected(expected);
-      const { status, json } = await request("GET", `/v3/fund-app/mch-transfer/transfer-bills/out-bill-no/${expected.outBillNo}`);
-      expectStatus(status, 200);
-      return transferResult(json, expected, true);
+      const result = await findTransfer(expected);
+      if (!result) throw new PaymentError("PROVIDER_ERROR", "Transfer not found; preserve original attempt");
+      return result;
     },
     async createNative(input: WechatOrderInput): Promise<string> {
       const { status, json } = await request("POST", "/v3/pay/transactions/native", orderBody(input)); expectStatus(status, 200);
@@ -272,21 +310,7 @@ export function createWechatPayClient(config: WechatPayConfig, dependencies: Cli
     },
     /** Verifies payment notifications only. Consumers must atomically deduplicate and match expected business amount. */
     parseNotification(rawBody: string, headers: WechatSignatureHeaders): Record<string, unknown> {
-      if (!verifySignature(headers, rawBody)) throw new PaymentError("SIGNATURE_INVALID", "WeChat notification signature verification failed");
-      let envelope: unknown;
-      try { envelope = JSON.parse(rawBody); } catch { return invalid("Invalid WeChat notification JSON"); }
-      if (!isRecord(envelope) || envelope.event_type !== "TRANSACTION.SUCCESS" || envelope.resource_type !== "encrypt-resource" || !isRecord(envelope.resource)) return invalid("Unsupported WeChat notification");
-      const resource = envelope.resource;
-      if (resource.algorithm !== "AEAD_AES_256_GCM" || resource.original_type !== "transaction" || typeof resource.nonce !== "string" || Buffer.byteLength(resource.nonce) !== 12 || typeof resource.ciphertext !== "string" || !/^[A-Za-z0-9+/]+={0,2}$/.test(resource.ciphertext) || (resource.associated_data !== undefined && typeof resource.associated_data !== "string")) return invalid("Invalid WeChat encrypted resource");
-      let decrypted: unknown;
-      try {
-        const ciphertext = Buffer.from(resource.ciphertext, "base64");
-        if (ciphertext.length <= 16) throw new Error();
-        const decipher = createDecipheriv("aes-256-gcm", Buffer.from(c.apiV3Key, "utf8"), Buffer.from(resource.nonce));
-        decipher.setAuthTag(ciphertext.subarray(-16)); decipher.setAAD(Buffer.from(resource.associated_data as string ?? ""));
-        decrypted = JSON.parse(Buffer.concat([decipher.update(ciphertext.subarray(0, -16)), decipher.final()]).toString("utf8"));
-      } catch { return invalid("WeChat notification decryption failed"); }
-      if (!isRecord(decrypted)) return invalid("Invalid WeChat notification transaction");
+      const decrypted = decryptNotification(rawBody, headers, "TRANSACTION.SUCCESS", "transaction");
       transaction(decrypted);
       if (decrypted.trade_state !== "SUCCESS") return invalid("Notification event and trade state mismatch");
       return decrypted;

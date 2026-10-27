@@ -32,7 +32,7 @@ Supply independent configuration per merchant/client. The library never reads en
 
 | Provider | Operations |
 | --- | --- |
-| WeChat | Native, H5 (explicit gate), Mini Program JSAPI (explicit AppID/gate), query, close, refund/query, payment notification verification/decryption; merchant transfer creation and query (local candidate) |
+| WeChat | Native, H5 (explicit gate), Mini Program JSAPI (explicit AppID/gate), query, close, refund/query, payment notification verification/decryption; merchant transfer creation, authenticated query/not-found, and notification verification/decryption (local candidate) |
 | Alipay | PC/WAP checkout URL, query, close, refund/query, payment notification verification |
 
 Wechat ordinary-merchant public-key mode and Alipay RSA2 public-key mode are supported. Service-provider/sub-merchant, platform certificate rotation, automatic bill download, refund webhooks, automatic renewal and business settlement are outside this release. Existing CloudBase orders must keep their original provider path.
@@ -45,10 +45,20 @@ Wechat ordinary-merchant public-key mode and Alipay RSA2 public-key mode are sup
 - Apply results atomically and idempotently in your own database. Duplicate notifications remain possible; browser redirects, query failures and a refund request being accepted do not establish successful settlement.
 - H5 return URL/domain and browser selection, trusted proxy/client IP extraction, HTTPS webhook routes, merchant product permissions and live acceptance remain application responsibilities.
 - No automatic retry of create/refund requests, raw provider error bodies, persistent secret cache, business order mutation or audit database is included.
-- Merchant transfers require a separately approved product, a bound AppID and an immutable, persisted business attempt. `createTransfer` returns an accepted provider response, not proof of settlement; use `queryTransfer` on the original merchant bill number and atomically apply a verified terminal result. Treat timeouts, signature failures and uncertain errors as unknown; do not automatically issue a replacement bill. User confirmation or prior authorization, transfer callbacks, reconciliation and application-specific eligibility remain the consumer's responsibility. This candidate has not been released or live-validated.
+- Merchant transfers require a separately approved product, a bound AppID and an immutable, persisted business attempt. `createTransfer` returns an accepted provider response, not proof of settlement; use `queryTransfer` on the original merchant bill number and atomically apply a verified terminal result. Treat timeouts, signature failures and uncertain errors as unknown; do not automatically issue a replacement bill. User confirmation or prior authorization, callback routing, reconciliation and application-specific eligibility remain the consumer's responsibility. This candidate has not been released or live-validated.
 
 ## Errors and tests
 
 `PaymentError.code` distinguishes configuration, input, signature, invalid response, provider, network and identity mismatch errors. Error messages omit provider bodies and secrets. Code may inspect verified provider records for its own guarded logic, but must not log them unredacted.
 
 See [NOTICE](NOTICE.md) for provenance and [LICENSE](LICENSE) for GPL-3.0 terms. Package tests use generated keys and fake HTTP, not real transactions.
+
+## Merchant transfer integration (0.1.3 candidate)
+
+`findTransfer(expected)` returns null only for a signed HTTP 404 / `NOT_FOUND` response. `queryTransfer(expected)` requires a transfer to exist. Both verify the original bill, merchant, AppID and integer amount; a mismatched returned OpenID is rejected. A null result never authorizes releasing money or creating a replacement bill.
+
+`parseTransferNotification(rawBody, headers)` authenticates and decrypts a transfer terminal notification and returns only its bill number. The consumer must load its immutable attempt and query it before updating its ledger. `readWechatNotification(request)` from `/wechat-notification` bounds the signed original body to 64 KiB / 2 seconds and validates required signature headers. Next.js and Hono consumers share this implementation.
+
+Mira and CubeRoot use separate merchants, credentials, recipients, databases and product limits. They retain finance approval, consent, encrypted recipient snapshots, atomic reservations, retry leases and payout audits. Their workers revisit the original bill only, including interrupted dispatches; disabling new transfers must not disable verification of transfers already sent. Frontend `requestMerchantTransfer` completion is not evidence of payment.
+
+No live transfer, deployment or merchant configuration change is included in this local candidate. See `docs/wechat-payout-integration-2026-10.md` in the source repository for the consumer handoff.
