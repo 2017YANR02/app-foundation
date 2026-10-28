@@ -57,3 +57,15 @@ Mira feature9512cb69 passed CI40467510247 and production health; adminApi/wallet
 Mira2.1.22 and CubeRoot0.1.0 obtained official development upload acknowledgements and package-size receipts. The first Mira upload was explicitly rejected because the logged-in WeChat account lacked developer permission; its misleading zero-exit receipt was corrected, the uploader now requires explicit success plus a package receipt, and the owner switched to an already authorized account before a fresh successful build upload. No Mini Program review/public release or real-device/funds acceptance was performed.
 
 Merchant-console readiness remains incomplete: the owner could not confirm safety IP/funding, and browser site-safety policy blocks observing or operating that console. The owner must confirm/configure the production egress IP47.97.30.181 and operating funds in both merchants. The protocol library and deployments do not substitute for that external setup or real payout evidence. Current consumer trackers retain that blocker rather than claiming complete live money movement.
+
+### Operating balance verification follow-up, 2026-10-27
+
+The owner requested direct balance verification for both merchants. Each production merchant credential independently called the documented GET/v3/merchant/fund/balance/OPERATION endpoint. Both responses at08:38:38UTC were signature-verified HTTP403/NO_AUTH with no balance returned. This establishes lack of access to that balance endpoint, not zero/adequate funds or lack of merchant-transfer permission. No privilege expansion, top-up, fund movement, payout approval or transfer occurred. Both consumer payout/recovery configurations and read-only recovery checks remain healthy, with zero unfinished transfer attempts. Awaiting owner-provided available operating balances because merchant-console browser access remains blocked by site-safety policy; no circumvention was attempted. No library change was needed for this verification.
+
+### Owner balance confirmation, 2026-10-27
+
+The owner supplied a Mira merchant-console screenshot showing a zero operating balance and explicitly reported that CubeRoot also has a zero operating balance (owner report, no CubeRoot screenshot). Funding readiness is therefore blocked for both consumers until their respective operating accounts are funded. Deployed configuration and protocol code are unchanged; no top-up, fund movement, payout approval or real transfer was performed. Funding confirmation and real receipt acceptance remain distinct evidence.
+
+### Mira operating account funded, 2026-10-27
+
+The owner subsequently supplied a Mira recharge-page screenshot showing CNY1000.00 in its operating account. This supersedes the earlier zero-balance observation for Mira only; no new CubeRoot funding evidence was provided. Real transfer/receipt acceptance remains pending. No library or production configuration change was needed, and no funds were moved by the agent.
