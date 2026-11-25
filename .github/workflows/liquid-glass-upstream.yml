@@ -1,0 +1,51 @@
+name: Liquid Glass Studio upstream
+on:
+  schedule:
+    - cron: "17 16 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency: liquid-glass-upstream
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Report an upstream revision once
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM: iyinchao/liquid-glass-studio
+        shell: bash
+        run: |
+          set -euo pipefail
+          adopted=$(sed -nE 's/^Liquid Glass Studio upstream revision: ([[:xdigit:]]{40})$/\1/p' packages/ui-controls/NOTICE.md)
+          [[ "$adopted" =~ ^[0-9a-f]{40}$ ]]
+          upstream=$(gh api "repos/$UPSTREAM/commits/main" --jq .sha)
+          [[ "$upstream" =~ ^[0-9a-f]{40}$ ]]
+          if [[ "$adopted" == "$upstream" ]]; then
+            echo 'The adopted Studio revision is current.'
+            exit 0
+          fi
+          issue_title="Liquid Glass Studio 上游更新 ${upstream:0:12}"
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --search "$issue_title in:title" --json title --jq '.[].title')
+          if grep -Fxq "$issue_title" <<< "$existing"; then
+            echo 'This upstream revision has already been reported.'
+            exit 0
+          fi
+          optical_files=$(gh api "repos/$UPSTREAM/compare/$adopted...$upstream" --jq '.files[].filename | select(test("^src/(shaders|Controls|utils)|^LICENSE"))')
+          {
+            printf 'Liquid Glass Studio 更新到了 `%s`。当前共享包采用 `%s`。\n\n' "$upstream" "$adopted"
+            printf '[比较上游差异](https://github.com/%s/compare/%s...%s)\n\n' "$UPSTREAM" "$adopted" "$upstream"
+            if [[ -n "$optical_files" ]]; then
+              printf '涉及着色器、渲染、控件参数或许可的文件：\n\n'
+              printf '%s\n' '```text' "$optical_files" '```'
+            else
+              printf '比较结果未列出着色器、渲染、控件参数或许可的变动。\n'
+            fi
+          } > "$RUNNER_TEMP/liquid-glass-update.md"
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$issue_title" \
+            --assignee "${GITHUB_REPOSITORY_OWNER}" --body-file "$RUNNER_TEMP/liquid-glass-update.md"
