@@ -42,6 +42,7 @@ export function bakeStudioLens({ width, height, radius }: StudioLensSize) {
   const displacement = context.createImageData(canvas.width, canvas.height);
   const rim = context.createImageData(canvas.width, canvas.height);
   const rimThickness = Math.min(MAX_EDGE_THICKNESS, width / 4, height / 4);
+  const contactWidth = Math.max(2, 1.5 * width / canvas.width, 1.5 * height / canvas.height);
   const innerHalfWidth = width / 2 - radius;
   const innerHalfHeight = height / 2 - radius;
 
@@ -65,7 +66,10 @@ export function bakeStudioLens({ width, height, radius }: StudioLensSize) {
       const sideX = dx >= dy ? 1 : 0;
       const normalX = Math.sign(x) * (cornerDistance ? roundedX / cornerDistance : sideX);
       const normalY = Math.sign(y) * (cornerDistance ? roundedY / cornerDistance : 1 - sideX);
-      const bend = edgeFactor(Math.max(0, depth), rimThickness) / SURFACE_EDGE_FACTOR;
+      // Let all three color samples meet the unchanged backdrop at the contact edge.
+      const contact = clamp(depth / contactWidth, 0, 1);
+      const contactFade = contact * contact * (3 - 2 * contact);
+      const bend = contactFade * edgeFactor(Math.max(0, depth), rimThickness) / SURFACE_EDGE_FACTOR;
       displacement.data[offset] -= Math.round(127 * normalX * bend);
       displacement.data[offset + 1] -= Math.round(127 * normalY * bend);
 

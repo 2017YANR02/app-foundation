@@ -72,6 +72,11 @@ page through an SVG filter. Safari and Firefox retain the shape-aware highlights
 and use CSS frost for the backdrop. Reduced transparency uses the solid fill.
 The included notice pins the upstream source and preserves its MIT license.
 
+Since 0.2.5, framed `data-site-surface="panel"` and `data-site-surface="popover"`
+elements can also read `--af-studio-filter` and `--af-studio-rim` for direct
+painting. Heading roles stay on the site-level material. At the contact edge,
+the displacement returns smoothly to the unmodified backdrop.
+
 The repository's `Liquid Glass Studio upstream` workflow checks the pinned
 revision daily and assigns the owner an issue for each newly detected revision.
 Updating the adopted revision follows the same package and consumer checks.

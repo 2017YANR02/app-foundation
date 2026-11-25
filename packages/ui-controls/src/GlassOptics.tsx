@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, type RefObject } from "react";
 import { bakeStudioLens, STUDIO_DISPERSION, type StudioLensSize } from "./studio-lens";
 
 const svgNamespace = "http://www.w3.org/2000/svg";
-const surfaceSelector = ".af-glass-surface";
+const surfaceSelector = '.af-glass-surface, [data-site-surface="panel"], [data-site-surface="popover"]';
 const studioFilter = "--af-studio-filter";
 const studioRim = "--af-studio-rim";
 const channelMatrices = [
@@ -44,8 +44,11 @@ function createFilter(svg: SVGSVGElement, id: string, map: string, scale: number
 function getSize(surface: HTMLElement): StudioLensSize | null {
   const { offsetWidth: width, offsetHeight: height } = surface;
   if (width < 2 || height < 2) return null;
-  const value = getComputedStyle(surface).borderTopLeftRadius;
+  const style = getComputedStyle(surface);
+  const value = style.borderTopLeftRadius;
   const rawRadius = Number.parseFloat(value) || 0;
+  // Semantic roles also appear on unframed groups. Their layout needs no rim.
+  if (!surface.classList.contains("af-glass-surface") && !rawRadius && !Number.parseFloat(style.borderTopWidth)) return null;
   const radius = Math.min(width / 2, height / 2, value.endsWith("%") ? rawRadius / 100 * width : rawRadius);
   return { width, height, radius };
 }
@@ -112,7 +115,7 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
           const backdrop = lens.filter ? `${studioFilter}: ${lens.backdrop};` : "";
           imports.push(`${getSurfacePath(surface)} { ${backdrop} ${studioRim}: url("${lens.rim}"); }`);
         }
-        stylesheet.replaceSync(imports.join("\n"));
+        stylesheet.replaceSync(`@media screen { ${imports.join("\n")} }`);
       });
     }
 
@@ -219,7 +222,7 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
     };
     if (!targetRef) {
       target.querySelectorAll<HTMLElement>(surfaceSelector).forEach(register);
-      mutations.observe(target, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+      mutations.observe(target, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-site-surface"] });
     }
     updatePreference();
     transparency.addEventListener("change", updatePreference);

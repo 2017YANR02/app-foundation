@@ -1,6 +1,6 @@
 {
   "name": "@app-foundation/ui-controls",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Shared controlled React UI controls",
   "license": "GPL-3.0-only",
   "type": "commonjs",

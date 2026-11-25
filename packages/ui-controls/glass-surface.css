@@ -19,8 +19,15 @@
 
 :where(:root, body, [data-af-glass-theme], .af-glass-surface) {
   --af-glass-border-color: var(--af-glass-edge, var(--af-glass-material-edge));
-  --af-glass-border-image: none;
-  --af-glass-border-clip: padding-box;
+  --af-glass-border-gradient: none;
+  --af-glass-border-region: padding-box;
+  --af-glass-border-image: var(--af-glass-border-gradient);
+  --af-glass-border-clip: var(--af-glass-border-region);
+}
+
+:where([data-site-surface='panel'], [data-site-surface='popover'], [data-site-surface='heading']) {
+  --af-studio-filter: initial;
+  --af-studio-rim: none;
 }
 
 :where(.af-glass-surface:is([data-af-glass-role='popover'], [data-af-glass-role='menu'], [data-af-glass-role='dialog'])) {
@@ -82,13 +89,13 @@
       @supports (background-clip: border-area) and (color: color-mix(in srgb, black, white)) {
         :where(:root, body, [data-af-glass-theme], .af-glass-surface) {
           --af-glass-border-color: transparent;
-          --af-glass-border-image: var(--af-glass-rim, linear-gradient(
+          --af-glass-border-gradient: var(--af-glass-rim, linear-gradient(
             145deg,
             color-mix(in srgb, var(--af-glass-edge, var(--af-glass-material-edge)) 78%, white),
             color-mix(in srgb, var(--af-glass-edge, var(--af-glass-material-edge)) 60%, transparent) 42% 66%,
             var(--af-glass-edge, var(--af-glass-material-edge))
           )), none;
-          --af-glass-border-clip: border-area, padding-box;
+          --af-glass-border-region: border-area, padding-box;
         }
       }
     }
