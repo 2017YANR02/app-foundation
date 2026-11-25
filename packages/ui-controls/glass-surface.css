@@ -1,0 +1,96 @@
+/* Resolve material tokens wherever a host defines a theme or installs optics. */
+:where(:root, body, [data-af-glass-theme]) {
+  --af-glass-panel-bg: var(--af-glass-card, Canvas);
+  --af-glass-popover-bg: var(--af-glass-popover, Canvas);
+  --af-glass-menu-bg: var(--af-glass-popover, Canvas);
+  --af-glass-dialog-bg: var(--af-glass-popover, Canvas);
+  --af-glass-material-edge: var(--af-glass-border, ButtonBorder);
+  --af-glass-backdrop: none;
+}
+
+:where(.af-glass-surface) {
+  --af-glass-fill: var(--af-glass-card, Canvas);
+  --af-glass-tint: var(--af-glass-panel-bg);
+  --af-glass-edge: var(--af-glass-material-edge);
+  --af-studio-filter: initial;
+  --af-studio-rim: none;
+  isolation: isolate;
+}
+
+:where(:root, body, [data-af-glass-theme], .af-glass-surface) {
+  --af-glass-border-color: var(--af-glass-edge, var(--af-glass-material-edge));
+  --af-glass-border-image: none;
+  --af-glass-border-clip: padding-box;
+}
+
+:where(.af-glass-surface:is([data-af-glass-role='popover'], [data-af-glass-role='menu'], [data-af-glass-role='dialog'])) {
+  --af-glass-fill: var(--af-glass-popover, Canvas);
+  --af-glass-tint: var(--af-glass-popover-bg);
+}
+
+:where(.af-glass-surface[data-af-glass-role='menu']) {
+  --af-glass-tint: var(--af-glass-menu-bg);
+}
+
+:where(.af-glass-surface[data-af-glass-role='dialog']) {
+  --af-glass-tint: var(--af-glass-dialog-bg);
+}
+
+/* Paint independently of the content so controls and nested surfaces keep
+   sampling the page instead of a filtered ancestor. */
+:where(.af-glass-surface)::before {
+  content: var(--af-glass-content, "");
+  position: absolute;
+  inset: var(--af-glass-inset, calc(-1 * var(--af-glass-width, 1px)));
+  z-index: -1;
+  border: var(--af-glass-width, 1px) solid var(--af-glass-border-color);
+  border-radius: inherit;
+  background-color: var(--af-glass-fill, Canvas);
+  background-image: var(--af-glass-border-image);
+  background-origin: border-box;
+  background-clip: var(--af-glass-border-clip);
+  pointer-events: none;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  @media screen {
+    @media not (prefers-reduced-transparency: reduce) {
+      :where(:root, body, [data-af-glass-theme]) {
+        --af-glass-backdrop: var(--af-glass-optics, blur(16px) saturate(1.45));
+      }
+
+      :where(.af-glass-surface)::before {
+        background-color: var(--af-glass-tint, var(--af-glass-fill, Canvas));
+        background-image: var(--af-glass-reflection, var(--af-studio-rim)), var(--af-glass-border-image);
+        background-size: 100% 100%, auto, auto;
+        background-clip: border-box, var(--af-glass-border-clip);
+        background-repeat: no-repeat;
+        -webkit-backdrop-filter: var(--af-glass-filter, var(--af-studio-filter, var(--af-glass-backdrop)));
+        backdrop-filter: var(--af-glass-filter, var(--af-studio-filter, var(--af-glass-backdrop)));
+      }
+
+      @supports (color: color-mix(in srgb, black, white)) {
+        :where(:root, body, [data-af-glass-theme]) {
+          --af-glass-panel-bg: color-mix(in srgb, var(--af-glass-card, Canvas) 22%, transparent);
+          --af-glass-popover-bg: color-mix(in srgb, var(--af-glass-popover, Canvas) 38%, transparent);
+          --af-glass-menu-bg: color-mix(in srgb, var(--af-glass-popover, Canvas) 82%, transparent);
+          --af-glass-dialog-bg: color-mix(in srgb, var(--af-glass-popover, Canvas) 96%, transparent);
+          --af-glass-material-edge: color-mix(in srgb, var(--af-glass-ink, CanvasText) 22%, transparent);
+        }
+      }
+
+      @supports (background-clip: border-area) and (color: color-mix(in srgb, black, white)) {
+        :where(:root, body, [data-af-glass-theme], .af-glass-surface) {
+          --af-glass-border-color: transparent;
+          --af-glass-border-image: var(--af-glass-rim, linear-gradient(
+            145deg,
+            color-mix(in srgb, var(--af-glass-edge, var(--af-glass-material-edge)) 78%, white),
+            color-mix(in srgb, var(--af-glass-edge, var(--af-glass-material-edge)) 60%, transparent) 42% 66%,
+            var(--af-glass-edge, var(--af-glass-material-edge))
+          )), none;
+          --af-glass-border-clip: border-area, padding-box;
+        }
+      }
+    }
+  }
+}

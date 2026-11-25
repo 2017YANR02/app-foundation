@@ -1,6 +1,6 @@
 {
   "name": "@app-foundation/ui-controls",
-  "version": "0.2.0",
+  "version": "0.2.4",
   "description": "Shared controlled React UI controls",
   "license": "GPL-3.0-only",
   "type": "commonjs",
@@ -11,12 +11,18 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./styles.css": "./styles.css"
+    "./styles.css": "./styles.css",
+    "./glass-surface.css": "./glass-surface.css",
+    "./glass-optics": {
+      "types": "./dist/GlassOptics.d.ts",
+      "default": "./dist/GlassOptics.js"
+    }
   },
   "files": [
     "dist",
     "src",
     "styles.css",
+    "glass-surface.css",
     "LICENSE",
     "NOTICE.md",
     "README.md",

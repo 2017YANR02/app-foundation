@@ -30,3 +30,56 @@ Theme tokens: --af-toggle-on, --af-control-foreground and --af-control-focus. No
 ```
 
 Additional tokens: `--af-control-border/background/radius`, `--af-tooltip-border/background/foreground`, `--af-dialog-backdrop`. Theme/localization/links stay with the host. Consumers import the namespaced stylesheet once; host classes can customize appearance. Version 0.2.0 is a local candidate, not a public release.
+
+## Glass refraction (0.2.1)
+
+```tsx
+import { GlassOptics } from "@app-foundation/ui-controls/glass-optics";
+
+<GlassOptics targetRef={headerRef} cssVariable="--header-refraction" />
+```
+
+Mount one instance per target and CSS property. Omit `targetRef` to attach to `document.body`. The component installs the backdrop-filter value on supported Chromium browsers and removes it on unmount. Set `displacementScale` to tune refraction (default `42`). An optional stable `onActiveChange(target, active)` callback lets the host update attributes when the filter is installed or removed.
+
+## Glass surface (0.2.2)
+
+Import `@app-foundation/ui-controls/glass-surface.css` and add `af-glass-surface`
+to a positioned, isolated element with a transparent 1px border and the
+desired radius. Keep its background transparent. The stylesheet paints a
+one-pixel reflection and the backdrop on a separate layer behind the content.
+It uses a solid fill for printing, reduced transparency and unsupported backdrop
+filters, and a flat edge when border-area clipping is unavailable.
+
+Set `--af-glass-fill` and `--af-glass-tint` to the host's solid and translucent
+colors, `--af-glass-edge` to the theme edge, and `--af-glass-filter` to the
+property installed by `GlassOptics` with a blur fallback. Optionally use
+`--af-glass-rim` for an interaction-state gradient, `--af-glass-width: 0px`
+for borderless surfaces, or `--af-glass-content: none` to suppress the layer.
+
+### Site-wide material (0.2.3)
+
+Set the theme inputs `--af-glass-card`, `--af-glass-popover`, `--af-glass-ink`
+and `--af-glass-border` on the root theme. Mount one `SiteGlassOptics` from
+the `glass-optics` entry. Scopes with a local theme can set the same
+inputs on an element marked `data-af-glass-theme`.
+
+### Liquid Glass Studio optics (0.2.4)
+
+The shared renderer uses Liquid Glass Studio's edge refraction curve, RGB
+dispersion and directional Fresnel highlights. It measures each visible rounded
+surface and reuses the maps for matching geometry. Chromium samples the live
+page through an SVG filter. Safari and Firefox retain the shape-aware highlights
+and use CSS frost for the backdrop. Reduced transparency uses the solid fill.
+The included notice pins the upstream source and preserves its MIT license.
+
+The repository's `Liquid Glass Studio upstream` workflow checks the pinned
+revision daily and assigns the owner an issue for each newly detected revision.
+Updating the adopted revision follows the same package and consumer checks.
+
+`af-glass-surface` uses the panel material by default. Set
+`data-af-glass-role="popover|menu|dialog"` for a different tint density. For
+elements that require direct painting, such as table headers, use the same
+`--af-glass-*-bg` tokens and `--af-glass-backdrop`. Existing frames can use
+`--af-glass-border-color`, `--af-glass-border-image` and
+`--af-glass-border-clip` with a border-box background origin. Set
+`--af-glass-inset: 0px` for a framed layer inside a host without a reserved border.

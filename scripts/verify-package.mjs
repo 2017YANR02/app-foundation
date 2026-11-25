@@ -18,7 +18,7 @@ if (artifacts.some(file => !available.includes(file))) throw new Error("Missing 
 for (const artifact of artifacts) {
   const filename = path.join(root, "artifacts", artifact);
   const files = execFileSync("tar", ["-tzf", filename], { encoding: "utf8" }).trim().split("\n");
-  if (files.some(file => !/^package\/(?:dist\/|src\/|package\.json$|tsconfig\.json$|README\.md$|NOTICE\.md$|LICENSE$|workspace\.css$|navigation\.css$|resize-divider\.css$|styles\.css$|beian-badge\.png$)/u.test(file)
+  if (files.some(file => !/^package\/(?:dist\/|src\/|package\.json$|tsconfig\.json$|README\.md$|NOTICE\.md$|LICENSE$|workspace\.css$|navigation\.css$|resize-divider\.css$|styles\.css$|glass-surface\.css$|beian-badge\.png$)/u.test(file)
     || file.split("/").some(part => part === ".." || part.startsWith(".")))) throw new Error(`Unexpected tarball contents: ${artifact}`);
   console.log(`${createHash("sha256").update(await readFile(filename)).digest("hex")}  ${artifact}`);
 }
@@ -68,6 +68,12 @@ assert.equal(icons.BrandIcon({ name: "wechat", "aria-label": "WeChat" }).props["
 assert.ok(require("@app-foundation/icons/lucide").Mail);
 assert.equal(typeof require("@app-foundation/ui-controls").Dialog, "function");
 assert.ok(require.resolve("@app-foundation/ui-controls/styles.css"));
+const { GlassOptics, SiteGlassOptics } = require("@app-foundation/ui-controls/glass-optics");
+assert.equal(typeof GlassOptics, "function");
+assert.equal(typeof SiteGlassOptics, "function");
+const glassStyles = require("node:fs").readFileSync(require.resolve("@app-foundation/ui-controls/glass-surface.css"), "utf8");
+assert.ok(glassStyles.includes("--af-glass-panel-bg:"));
+assert.ok(glassStyles.includes("--af-glass-backdrop:"));
 const core = require("@app-foundation/payments/core");
 assert.equal(core.decimalToMinor("10.01"), 1001);
 assert.equal(typeof require("@app-foundation/payments/wechat").createWechatPayClient, "function");
@@ -92,6 +98,9 @@ import { BrandIcon } from "@app-foundation/icons";
 import { Mail } from "@app-foundation/icons/lucide";
 assert.equal(typeof BrandIcon, "function");
 assert.ok(Mail);
+import { GlassOptics, SiteGlassOptics } from "@app-foundation/ui-controls/glass-optics";
+assert.equal(typeof GlassOptics, "function");
+assert.equal(typeof SiteGlassOptics, "function");
 import { IcpRegistration, PublicSecurityRegistration } from "@app-foundation/registration-ui";
 assert.equal(typeof IcpRegistration, "function");
 assert.equal(typeof PublicSecurityRegistration, "function");
@@ -121,6 +130,8 @@ import { createAlipayClient } from "@app-foundation/payments/alipay";
 import { type ExpectedPayment, assertPaymentMatches } from "@app-foundation/payments/core";
 import { reportReadScope, type WorkspaceActor } from "@app-foundation/workspace-policy";
 import { type PublicSecurityRegistrationProps } from "@app-foundation/registration-ui";
+import { GlassOptics, SiteGlassOptics } from "@app-foundation/ui-controls/glass-optics";
+void [GlassOptics, SiteGlassOptics];
 const registration: PublicSecurityRegistrationProps = { number: "fixture", code: "123", badgeSrc: "/badge.png" };
 void registration;
 const actor: WorkspaceActor = { kind: "staff", id: 1, role: "member" };
