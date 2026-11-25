@@ -7,6 +7,8 @@ const svgNamespace = "http://www.w3.org/2000/svg";
 const surfaceSelector = '.af-glass-surface, [data-site-surface="panel"], [data-site-surface="popover"]';
 const studioFilter = "--af-studio-filter";
 const studioRim = "--af-studio-rim";
+const maxUnusedLenses = 24;
+const androidBackdrop = "blur(3px) saturate(1.28)";
 const channelMatrices = [
   "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0",
   "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0",
@@ -91,31 +93,46 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
     const filters: SVGSVGElement = svg;
     const stylesheet = new CSSStyleSheet();
     document.adoptedStyleSheets = [...document.adoptedStyleSheets, stylesheet];
-    const refraction = /Chrome|Chromium|Edg/.test(navigator.userAgent) &&
-      !/iPhone|iPad|iPod/.test(navigator.userAgent) && CSS.supports("backdrop-filter", `url("#${idPrefix}")`);
+    const agent = navigator.userAgent;
+    const androidSite = !targetRef && /Android/.test(agent);
+    // In Android WebView, stacking many SVG backdrop filters makes scrolling miss frame deadlines.
+    const refraction = /Chrome|Chromium|Edg/.test(agent) && !/iPhone|iPad|iPod/.test(agent) &&
+      !androidSite && CSS.supports("backdrop-filter", `url("#${idPrefix}")`);
     const transparency = matchMedia("(prefers-reduced-transparency: reduce)");
     let sequence = 0;
     const cache = new Map<string, CachedLens>();
+    const unusedLenses = new Set<string>();
     const attached = new Map<HTMLElement, string>();
     const visible = new Set<HTMLElement>();
     const tracked = new Set<HTMLElement>();
     let frame = 0;
+    let currentStyles = "";
 
     // Keep responsive styles outside the React tree. Streamed content can still be hydrating.
     function writeStyles() {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        const imports = !transparency.matches && base?.filter
-          ? [`${getSurfacePath(target!)} { ${cssVariable}: ${base.backdrop}; }`]
+        const imports = !transparency.matches && siteBackdrop
+          ? [`${getSurfacePath(target!)} { ${cssVariable}: ${siteBackdrop}; }`]
           : [];
+        const selectorsByLens = new Map<CachedLens, string[]>();
         for (const [surface, key] of attached) {
           const lens = cache.get(key);
           if (!lens || !surface.isConnected) continue;
-          const backdrop = lens.filter ? `${studioFilter}: ${lens.backdrop};` : "";
-          imports.push(`${getSurfacePath(surface)} { ${backdrop} ${studioRim}: url("${lens.rim}"); }`);
+          const selector = getSurfacePath(surface);
+          const selectors = selectorsByLens.get(lens);
+          if (selectors) selectors.push(selector);
+          else selectorsByLens.set(lens, [selector]);
         }
-        stylesheet.replaceSync(`@media screen { ${imports.join("\n")} }`);
+        for (const [lens, selectors] of selectorsByLens) {
+          const backdrop = lens.filter ? `${studioFilter}: ${lens.backdrop};` : "";
+          imports.push(`${selectors.join(", ")} { ${backdrop} ${studioRim}: url("${lens.rim}"); }`);
+        }
+        const nextStyles = imports.join("\n");
+        if (nextStyles === currentStyles) return;
+        stylesheet.replaceSync(nextStyles ? `@media screen { ${nextStyles} }` : "");
+        currentStyles = nextStyles;
       });
     }
 
@@ -123,13 +140,14 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
       const known = cache.get(key);
       if (known) {
         known.users++;
+        unusedLenses.delete(key);
         return known;
       }
-      const baked = bakeStudioLens(size);
+      const baked = bakeStudioLens(size, refraction);
       if (!baked) return null;
       const id = `${idPrefix}-${++sequence}`;
       const scale = Math.min(displacementScale, size.height * 0.6);
-      const filter = refraction ? createFilter(filters, id, baked.map, scale) : null;
+      const filter = baked.map ? createFilter(filters, id, baked.map, scale) : null;
       const result = { filter, rim: baked.rim, backdrop: `blur(3px) url("#${id}") saturate(1.28)`, users: 1 };
       cache.set(key, result);
       return result;
@@ -138,8 +156,14 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
     function release(key: string) {
       const lens = cache.get(key);
       if (!lens || --lens.users) return;
-      lens.filter?.remove();
-      cache.delete(key);
+      // Retain recently viewed shapes so scrolling back does not re-encode their maps.
+      unusedLenses.add(key);
+      if (unusedLenses.size <= maxUnusedLenses) return;
+      const oldest = unusedLenses.values().next().value;
+      if (oldest === undefined) return;
+      cache.get(oldest)?.filter?.remove();
+      cache.delete(oldest);
+      unusedLenses.delete(oldest);
     }
 
     function clear(surface: HTMLElement) {
@@ -215,6 +239,7 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
     // Host aliases that cannot supply their own shape still use the Studio curve.
     const baseKey = "site";
     const base = refraction ? acquire({ width: 216, height: 112, radius: 16 }, baseKey) : null;
+    const siteBackdrop = base?.backdrop ?? (androidSite ? androidBackdrop : null);
     const updatePreference = () => {
       onActiveChange?.(target, Boolean(base?.filter && !transparency.matches));
       for (const surface of visible) update(surface);

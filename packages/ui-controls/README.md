@@ -67,15 +67,22 @@ inputs on an element marked `data-af-glass-theme`.
 
 The shared renderer uses Liquid Glass Studio's edge refraction curve, RGB
 dispersion and directional Fresnel highlights. It measures each visible rounded
-surface and reuses the maps for matching geometry. Chromium samples the live
-page through an SVG filter. Safari and Firefox retain the shape-aware highlights
-and use CSS frost for the backdrop. Reduced transparency uses the solid fill.
+surface and reuses the maps for matching geometry. Desktop Chromium samples the
+live page through an SVG filter. Android, Safari and Firefox retain the
+shape-aware highlights and use CSS frost for the site-wide backdrop. Reduced
+transparency uses the solid fill.
 The included notice pins the upstream source and preserves its MIT license.
 
 Since 0.2.5, framed `data-site-surface="panel"` and `data-site-surface="popover"`
 elements can also read `--af-studio-filter` and `--af-studio-rim` for direct
 painting. Heading roles stay on the site-level material. At the contact edge,
 the displacement returns smoothly to the unmodified backdrop.
+
+Version 0.2.6 keeps recently viewed lens maps available for reverse scrolling,
+shares generated CSS rules for equal shapes, and skips displacement baking
+where the browser uses CSS frost. Framed surfaces with a flat background can
+set `--af-glass-filter: none` to keep their tint and highlight without sampling
+the backdrop.
 
 The repository's `Liquid Glass Studio upstream` workflow checks the pinned
 revision daily and assigns the owner an issue for each newly detected revision.
