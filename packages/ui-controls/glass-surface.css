@@ -65,6 +65,12 @@
       --af-glass-backdrop: var(--af-glass-optics, blur(16px) saturate(1.45));
     }
 
+    /* Keep backdrop detail visible on the floating lens before hydration and on
+       engines that cannot displace a live backdrop. Its measured rim still applies. */
+    :where(.af-glass-surface[data-af-glass-optics='lens']) {
+      --af-studio-filter: blur(3px) saturate(1.28);
+    }
+
     :where(.af-glass-surface)::before {
       background-color: var(--af-glass-tint, var(--af-glass-fill, Canvas));
       background-image: var(--af-glass-reflection, var(--af-studio-rim)), var(--af-glass-border-image);
@@ -115,6 +121,10 @@
     --af-glass-border-color: var(--af-glass-edge, var(--af-glass-material-edge));
     --af-glass-border-gradient: none;
     --af-glass-border-region: padding-box;
+  }
+
+  :where(.af-glass-surface[data-af-glass-optics='lens']) {
+    --af-studio-filter: none;
   }
 
   :where(.af-glass-surface)::before {

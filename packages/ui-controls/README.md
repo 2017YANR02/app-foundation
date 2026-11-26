@@ -84,6 +84,14 @@ where the browser uses CSS frost. Framed surfaces with a flat background can
 set `--af-glass-filter: none` to keep their tint and highlight without sampling
 the backdrop.
 
+Add `data-af-glass-optics="lens"` to the `af-glass-surface` of a single floating
+control, such as a search bar. Android Chromium refracts that control's live
+backdrop in one sample using the same lens geometry as desktop Chromium.
+Desktop Chromium samples each color channel separately. WebKit and Firefox show the
+live backdrop through a 3px blur with the shared rim. List items and grids use
+the default material to keep scrolling smooth. Reduced transparency uses the
+solid fill for both.
+
 The repository's `Liquid Glass Studio upstream` workflow checks the pinned
 revision daily and assigns the owner an issue for each newly detected revision.
 Updating the adopted revision follows the same package and consumer checks.

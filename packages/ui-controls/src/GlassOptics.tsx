@@ -5,6 +5,7 @@ import { bakeStudioLens, STUDIO_DISPERSION, type StudioLensSize } from "./studio
 
 const svgNamespace = "http://www.w3.org/2000/svg";
 const surfaceSelector = '.af-glass-surface, [data-site-surface="panel"], [data-site-surface="popover"]';
+const opticsAttribute = "data-af-glass-optics";
 const studioFilter = "--af-studio-filter";
 const studioRim = "--af-studio-rim";
 const maxUnusedLenses = 24;
@@ -22,17 +23,21 @@ function appendSvg(parent: SVGElement, tag: string, attributes: Record<string, s
   return node;
 }
 
-function createFilter(svg: SVGSVGElement, id: string, map: string, scale: number) {
+function createFilter(svg: SVGSVGElement, id: string, map: string, scale: number, disperse: boolean) {
   const filter = appendSvg(svg, "filter", {
     id, x: "0%", y: "0%", width: "100%", height: "100%", "color-interpolation-filters": "sRGB",
   });
   appendSvg(filter, "feImage", {
     href: map, x: "0%", y: "0%", width: "100%", height: "100%", preserveAspectRatio: "none", result: "studioLens",
   });
+  const sample = { in: "SourceGraphic", in2: "studioLens", xChannelSelector: "R", yChannelSelector: "G" };
+  if (!disperse) {
+    appendSvg(filter, "feDisplacementMap", { ...sample, scale: String(scale) });
+    return filter;
+  }
   for (const [channel, factor] of STUDIO_DISPERSION.entries()) {
     appendSvg(filter, "feDisplacementMap", {
-      in: "SourceGraphic", in2: "studioLens", scale: String(scale * factor),
-      xChannelSelector: "R", yChannelSelector: "G", result: `sample${channel}`,
+      ...sample, scale: String(scale * factor), result: `sample${channel}`,
     });
     appendSvg(filter, "feColorMatrix", {
       in: `sample${channel}`, type: "matrix", values: channelMatrices[channel], result: `channel${channel}`,
@@ -95,9 +100,10 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
     document.adoptedStyleSheets = [...document.adoptedStyleSheets, stylesheet];
     const agent = navigator.userAgent;
     const androidSite = !targetRef && /Android/.test(agent);
-    // In Android WebView, stacking many SVG backdrop filters makes scrolling miss frame deadlines.
-    const refraction = /Chrome|Chromium|Edg/.test(agent) && !/iPhone|iPad|iPod/.test(agent) &&
-      !androidSite && CSS.supports("backdrop-filter", `url("#${idPrefix}")`);
+    const supportsRefraction = /Chrome|Chromium|Edg/.test(agent) && !/iPhone|iPad|iPod/.test(agent) &&
+      CSS.supports("backdrop-filter", `url("#${idPrefix}")`);
+    // Android WebView can refract a floating control, but stacking filters across a list is expensive.
+    const siteRefraction = supportsRefraction && !androidSite;
     const transparency = matchMedia("(prefers-reduced-transparency: reduce)");
     let sequence = 0;
     const cache = new Map<string, CachedLens>();
@@ -136,7 +142,7 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
       });
     }
 
-    function acquire(size: StudioLensSize, key: string) {
+    function acquire(size: StudioLensSize, key: string, refraction: boolean) {
       const known = cache.get(key);
       if (known) {
         known.users++;
@@ -147,7 +153,7 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
       if (!baked) return null;
       const id = `${idPrefix}-${++sequence}`;
       const scale = Math.min(displacementScale, size.height * 0.6);
-      const filter = baked.map ? createFilter(filters, id, baked.map, scale) : null;
+      const filter = baked.map ? createFilter(filters, id, baked.map, scale, !androidSite) : null;
       const result = { filter, rim: baked.rim, backdrop: `blur(3px) url("#${id}") saturate(1.28)`, users: 1 };
       cache.set(key, result);
       return result;
@@ -178,9 +184,10 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
       if (transparency.matches || !visible.has(surface)) return clear(surface);
       const size = getSize(surface);
       if (!size) return clear(surface);
-      const key = `${size.width}:${size.height}:${size.radius}`;
+      const refraction = siteRefraction || (supportsRefraction && surface.getAttribute(opticsAttribute) === "lens");
+      const key = `${size.width}:${size.height}:${size.radius}:${refraction}`;
       if (attached.get(surface) === key) return;
-      const lens = acquire(size, key);
+      const lens = acquire(size, key, refraction);
       if (!lens) return;
       clear(surface);
       attached.set(surface, key);
@@ -219,7 +226,9 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
       for (const record of records) {
         if (record.type === "attributes") {
           const surface = record.target as HTMLElement;
-          if (surface.matches(surfaceSelector)) register(surface);
+          if (record.attributeName === opticsAttribute) {
+            if (visible.has(surface)) update(surface);
+          } else if (surface.matches(surfaceSelector)) register(surface);
           else unregister(surface);
           continue;
         }
@@ -238,7 +247,7 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
 
     // Host aliases that cannot supply their own shape still use the Studio curve.
     const baseKey = "site";
-    const base = refraction ? acquire({ width: 216, height: 112, radius: 16 }, baseKey) : null;
+    const base = siteRefraction ? acquire({ width: 216, height: 112, radius: 16 }, baseKey, true) : null;
     const siteBackdrop = base?.backdrop ?? (androidSite ? androidBackdrop : null);
     const updatePreference = () => {
       onActiveChange?.(target, Boolean(base?.filter && !transparency.matches));
@@ -247,7 +256,7 @@ export function GlassOptics({ targetRef, cssVariable, displacementScale = 42, on
     };
     if (!targetRef) {
       target.querySelectorAll<HTMLElement>(surfaceSelector).forEach(register);
-      mutations.observe(target, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-site-surface"] });
+      mutations.observe(target, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-site-surface", opticsAttribute] });
     }
     updatePreference();
     transparency.addEventListener("change", updatePreference);
